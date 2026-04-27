@@ -1,0 +1,28 @@
+============================= test session starts ==============================
+platform linux -- Python 3.14.3, pytest-9.0.2, pluggy-1.6.0
+rootdir: /app
+configfile: pyproject.toml
+testpaths: tests
+plugins: mock-3.15.1, cov-7.1.0
+collected 11 items
+
+tests/test_analysis.py .........                                         [ 81%]
+tests/test_config.py ..                                                  [100%]
+
+================================ tests coverage ================================
+_______________ coverage: platform linux, python 3.14.3-final-0 ________________
+
+Name                       Stmts   Miss  Cover   Missing
+--------------------------------------------------------
+src/__init__.py                0      0   100%
+src/analysis/__init__.py       3      0   100%
+src/analysis/backtest.py      23      0   100%
+src/analysis/stats.py         21      0   100%
+src/config.py                 10      0   100%
+src/domain/__init__.py         2      0   100%
+src/domain/analysis.py         5      0   100%
+src/domain/features.py         0      0   100%
+src/domain/jquants.py          0      0   100%
+--------------------------------------------------------
+TOTAL                         64      0   100%
+============================= 11 passed in 14.33s ==============================
