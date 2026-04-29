@@ -12,7 +12,8 @@ The tutorial will support two execution modes:
 
 ## Tutorial Plan
 
-A **SINGLE** Marimo notebook will be created at `tutorials/UAT_AND_TUTORIAL.py`.
+You must specify that a **SINGLE** Marimo Text/Python file named `tutorials/UAT_AND_TUTORIAL.py` will be created.
+It will contain all scenarios (Quick Start + Advanced) in one file for easy verification using `marimo`.
 
 It will contain the following structured sections (cells):
 
@@ -39,6 +40,7 @@ It will contain the following structured sections (cells):
 ## Tutorial Validation
 
 To validate the tutorial:
-1. The developer must be able to run `uv run marimo edit tutorials/UAT_AND_TUTORIAL.py` without any initial syntax errors.
-2. Every cell must execute sequentially without raising unhandled exceptions (especially `KeyError` or `ValueError` due to missing data).
-3. The mock logic must successfully engage when the environment variable is omitted.
+1. Validate that the Marimo file executes correctly.
+2. The developer must be able to run `uv run marimo edit tutorials/UAT_AND_TUTORIAL.py` without any initial syntax errors.
+3. Every cell must execute sequentially without raising unhandled exceptions (especially `KeyError` or `ValueError` due to missing data).
+4. The mock logic must successfully engage when the environment variable is omitted.

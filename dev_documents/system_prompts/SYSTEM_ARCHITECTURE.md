@@ -1,106 +1,127 @@
-# SYSTEM ARCHITECTURE
+# System Architecture: Japanese Stock Calendar Anomaly Verification System
 
-## 1. Summary
-This document describes the high-level architecture for the Japanese Stock Calendar Anomaly Verification System (Live API E2E). The goal of this system is to retrieve daily stock data from the J-Quants API, transform the data using Polars, and then analyze any day-of-the-week anomalies (calendar anomalies) statistically and computationally. The system is designed to provide robust backend infrastructure, using a pipeline composed of Data Ingestion, Transformation, Storage, and subsequently Statistical Analysis and Backtesting. It uses a modern technology stack with Python, Polars for rapid data manipulation, DuckDB for local scalable analytical storage, and VectorBT for efficient backtesting on financial data.
+## Summary
+The Japanese Stock Calendar Anomaly Verification System is a Proof of Concept (PoC) designed to retrieve, process, and analyse historical stock data from the J-Quants API. It leverages modern data processing tools—Polars for rapid data manipulation, DuckDB for local scalable analytical queries, and vectorbt for high-performance algorithmic backtesting. The overarching goal of this system is to identify and verify the statistical significance of calendar anomalies, specifically focusing on the "day of the week" effect in the Japanese stock market. By executing end-to-end pipelines that fetch live data, transform it, conduct statistical tests, and simulate trading strategies, researchers and quantitative analysts can gain actionable insights into market behaviour.
 
-## 2. System Design Objectives
-The primary objectives of this system architecture are to build a robust, reproducible, and verifiable environment for finding calendar anomalies in Japanese stocks. The main design criteria include:
-- **Reproducibility**: The data pipeline and backtesting modules must act consistently so that any researcher or auditor can verify the generated statistics and trading signals.
-- **Robustness**: The API fetching mechanism must implement robust retry logic to handle rate limiting and intermittent errors from the J-Quants API. It must never hardcode sensitive credentials like API keys or refresh tokens. Instead, the system must utilize `python-dotenv` or structured Pydantic settings that rely on environment variables securely.
-- **Scalability**: By utilizing Polars for dataframe manipulations and DuckDB for columnar storage, the system should scale seamlessly beyond the initial Proof-of-Concept timeframe (e.g., beyond the requested 12-week subset), enabling analysis across several years of historical market data without consuming excessive memory.
-- **Separation of Concerns**: The application logic must be thoroughly separated from the domain logic. Ingestion, transformation, and storage must be distinct modules. Statistical testing and backtesting must rely on domain abstractions without directly knowing how the data was ingested or persisted.
-- **Testability**: The design mandates that unit tests, integration tests, and live End-to-End (E2E) tests are easy to orchestrate. Live E2E tests against the real J-Quants API (Free tier) are a strict requirement, verifying that the authentication and data ingestion workflows are functioning perfectly against actual network endpoints. The system must also decouple dependencies so that integration tests can be safely run offline or in a mocked context where necessary, especially for external APIs, utilizing a secure `.env` pipeline that prevents leakage.
-- **Security**: Strict separation of credentials. A `.env.example` file must be provided. Loggers must be scrubbed of any secret tokens or passwords to prevent leakage into audit logs.
-- **Modern Standards**: Type hints (Mypy strict), data validation (Pydantic), and fast execution capabilities form the foundation.
+## System Design Objectives
+The primary objective of this system is to establish a reliable, automated pipeline that ingests daily stock data, calculates necessary financial metrics, and rigorously tests for statistical calendar anomalies. The architecture must strictly separate concerns, ensuring that data ingestion, transformation, storage, statistical testing, and backtesting operate independently while seamlessly communicating via well-defined Pydantic schema contracts.
 
-## 3. System Architecture
-The system architecture revolves around two main pillars: The Data Pipeline (ETL & Storage) and the Analytical Engine (Backtesting & Statistics). The process begins with securely authenticating to the J-Quants API to acquire a refresh token and subsequent idToken. The system then queries the API for recent Japanese daily quotes.
+**Constraints:**
+- **External Dependency Control:** The system heavily relies on the J-Quants API (Free tier). It must implement robust retry and error-handling logic to manage rate limits and network anomalies gracefully.
+- **Resource Efficiency:** Leveraging Polars and DuckDB, the system must process data efficiently in-memory and on-disk without requiring heavy database installations.
+- **Security:** Strict separation of credentials is required. API keys and refresh tokens must never be hardcoded and should be accessed strictly via environment variables (using `python-dotenv`).
+
+**Success Criteria:**
+1. Successful, authenticated retrieval of 12 weeks of historical Japanese stock quotes from the J-Quants API.
+2. Accurate transformation of raw data into analytical datasets containing features such as day-of-week flags, month-start/end flags, daily returns, intraday returns, and overnight returns.
+3. Persistent storage of these datasets in Parquet format, allowing seamless DuckDB queries.
+4. Execution of robust statistical tests that quantify the significance of day-of-week returns using `statsmodels`.
+5. A working backtesting simulation using `vectorbt` that executes "Buy Monday Open, Sell Friday Close" (or similar strategies), factoring in slippage and transaction costs, and produces key performance metrics like Sharpe Ratios and Win Rates.
+
+## System Architecture
+The system follows a modern, decoupled architecture, breaking down operations into distinct layers: Configuration, Ingestion, Transformation, Storage, and Analysis.
+
+- **Configuration Layer:** Manages environment variables and application settings using Pydantic. It ensures all necessary secrets (e.g., `JQUANTS_REFRESH_TOKEN`) are securely loaded into the system without being exposed in the code.
+- **Ingestion Layer:** Connects to the J-Quants API, handles authentication (exchanging the refresh token for a session token), and retrieves paginated or time-bound historical stock quotes. This layer includes retry mechanisms to ensure resilience.
+- **Transformation Layer:** Utilises Polars to clean the raw JSON data and compute essential features. It handles the mathematical calculations for returns (close-to-close, open-to-close, close-to-open) and generates time-based flags.
+- **Storage Layer:** Writes the transformed Polars DataFrames into highly compressed, columnar Parquet files. DuckDB acts as an in-process SQL execution engine against these Parquet files, providing a unified query interface.
+- **Analysis Layer:** Divided into two sub-components:
+  - **Statistical Testing:** Takes the query results and applies statistical models (e.g., T-tests or ANOVA) via `statsmodels` to determine the validity of anomalies.
+  - **Backtesting Engine:** Translates the DataFrames into formats readable by `vectorbt`, simulates trading signals based on calendar anomalies, and generates performance metrics.
+
+**Boundary Management and Separation of Concerns:**
+To prevent the emergence of "God Classes," the system mandates strict boundaries. The Ingestion Layer must only return raw Pydantic models representing external API responses. It must not perform complex mathematical transformations. The Transformation Layer receives raw data, processes it, and outputs domain-specific Pydantic models. The Analysis Layer consumes the finalised dataset independently. External systems (like the J-Quants API) are only accessed through specific repository classes.
 
 ```mermaid
 graph TD
-    A[Environment .env] -->|Provides JQUANTS_REFRESH_TOKEN| B(Auth Module)
-    B -->|Generates idToken| C(Ingestion Module)
-    C -->|Fetch Daily Quotes| D[J-Quants API]
-    D -.->|Raw JSON Data| C
-    C -->|Raw Pydantic Models| E(Transformation Module)
-    E -->|Polars Dataframe Processing| F(Storage Module)
-    F -->|Persist as .parquet| G[(DuckDB / Local Parquet)]
-    G -->|Query Processed Data| H(Statistical Testing Module)
-    H -->|Calculate P-Values| I[StatsModels Output]
-    G -->|Query Pricing Data| J(Backtesting Engine)
-    J -->|Run VectorBT Strategy| K[Performance Metrics Output]
+    A[Environment Variables .env] -->|Loads via Pydantic| B(Configuration Layer)
+    B --> C{Ingestion Layer}
+    C -->|API Requests| D[J-Quants API]
+    D -->|Raw Quotes| C
+    C -->|Raw Pydantic Models| E(Transformation Layer Polars)
+    E -->|Computed Features| F(Storage Layer Parquet / DuckDB)
+    F -->|SQL Queries / DataFrames| G(Statistical Analysis statsmodels)
+    F -->|DataFrames| H(Backtesting Engine vectorbt)
+    G --> I[StatResult Pydantic Model]
+    H --> J[BacktestMetrics Pydantic Model]
 ```
 
-**Boundary Management and Separation of Concerns:**
-1. **Ingestion Boundary**: Responsible strictly for network interaction, authentication, and returning generic domain models representing the raw API response. It must not contain logic for aggregating data or calculating technical indicators.
-2. **Transformation Boundary**: Responsible for taking raw domain data and manipulating it via Polars. It produces the specified features (day of week, beginning/end of month flags, overnight/intraday returns). It is stateless and side-effect free.
-3. **Storage Boundary**: Handles the reading and writing of data to local persistent storage (Parquet files) and providing an interface via DuckDB.
-4. **Analytical Boundary**: Consumes the processed data to produce statistics and performance metrics. It does not know where the data originated, only that it conforms to a specified schema.
-
-## 4. Design Architecture
-The file and folder structure enforces the separation of concerns.
+## Design Architecture
+The design relies heavily on strong typing and validation through Pydantic models, serving as the connective tissue between the decoupled modules.
 
 ```text
-thejtc/
-├── dev_documents/
+├── .env.example
+├── README.md
+├── pyproject.toml
 ├── src/
 │   ├── __init__.py
-│   ├── config.py           # Pydantic BaseSettings for App/Environment Config
-│   ├── domain/             # Pydantic models for type safety
+│   ├── config/
 │   │   ├── __init__.py
-│   │   ├── jquants.py      # Raw J-Quants API response schemas
-│   │   └── features.py     # Schemas for transformed data
-│   ├── ingestion/          # API Clients and Authentication
+│   │   └── settings.py
+│   ├── domain/
 │   │   ├── __init__.py
-│   │   ├── auth.py         # Handles JQUANTS_REFRESH_TOKEN auth
-│   │   └── client.py       # Fetches quotes using tenacity retries
-│   ├── transform/          # Polars transformation logic
+│   │   ├── raw_quote.py
+│   │   └── transformed_quote.py
+│   ├── ingestion/
 │   │   ├── __init__.py
-│   │   └── features.py     # Calculates return metrics and calendar flags
-│   ├── storage/            # Local Persistence and DuckDB interface
+│   │   └── jquants_client.py
+│   ├── transformation/
 │   │   ├── __init__.py
-│   │   └── parquet_db.py   # Save/Load Parquet and DuckDB querying
-│   └── analysis/           # Stats and Backtesting
-│       ├── __init__.py
-│       ├── stats.py        # Statsmodels logic for day-of-week returns
-│       └── backtest.py     # VectorBT logic
+│   │   └── feature_engine.py
+│   ├── storage/
+│   │   ├── __init__.py
+│   │   └── parquet_duckdb.py
+│   ├── analysis/
+│   │   ├── __init__.py
+│   │   ├── stats_tester.py
+│   │   └── backtester.py
+│   └── pipeline.py
 ├── tests/
 │   ├── __init__.py
-│   ├── conftest.py         # Pytest fixtures, mock env setups
-│   ├── test_ingestion.py   # Live & mocked API tests
-│   ├── test_transform.py   # Unit tests for Polars transformations
-│   ├── test_storage.py     # DuckDB and Parquet tests (using tmp_path)
-│   └── test_analysis.py    # Stats and VectorBT tests
-├── .env.example
-├── pyproject.toml
-└── README.md
+│   ├── conftest.py
+│   ├── test_ingestion.py
+│   ├── test_transformation.py
+│   └── test_analysis.py
+└── tutorials/
+    └── UAT_AND_TUTORIAL.py
 ```
 
-**Domain Pydantic Models Structure:**
-The system uses Pydantic to ensure all inputs and outputs across boundaries are strongly typed.
-- `JQuantsQuote`: Represents a single row of the raw API response.
-- `TransformedQuote`: Extends the concept to include calculated fields such as `day_of_week`, `is_month_start`, `intraday_return`, and `overnight_return`.
-- All environment variables are validated by a `Settings` class inheriting from `pydantic_settings.BaseSettings` with strict validation (`extra="forbid"`).
+**Core Domain Pydantic Models Structure & Boundary Validation:**
+To prevent performance bottlenecks during bulk processing, Pydantic is strictly reserved for interface boundaries (Configuration, API ingestion, and summary analytical outputs). High-volume internal transformations strictly utilize Polars DataFrames and Schemas.
 
-## 5. Implementation Plan
+1.  **AppSettings (`src/config/settings.py`)**: Defines system configurations, including `JQUANTS_REFRESH_TOKEN` and logging levels.
+2.  **RawQuote (`src/domain/raw_quote.py`)**: Validates the initial JSON payloads returned by the J-Quants API, ensuring schema correctness before conversion to a Polars DataFrame.
+3.  **Polars Transformed Schema (`src/transformation/feature_engine.py`)**: Replaces the concept of `TransformedQuote` Pydantic models. Once `RawQuote` data enters Polars, all subsequent features (`day_of_week`, `daily_return`, etc.) are validated via native Polars data types to ensure C-level execution speed prior to Parquet serialization.
+4.  **StatResult (`src/analysis/stats_tester.py`)**: Captures the results of the statistical test, including the T-statistic, P-value, and a boolean indicating significance.
+5.  **BacktestMetrics (`src/analysis/backtester.py`)**: Stores the final metrics from `vectorbt`, including `sharpe_ratio`, `win_rate`, `total_return`, and `max_drawdown`.
 
-### CYCLE01
-**Features:** Data Pipeline Construction (ETL & Storage)
-This cycle involves building the foundation. The primary goal is connecting to the J-Quants API, safely authenticating, pulling the required 12-week data, performing the structural transformations with Polars, and saving the results locally to Parquet files via a DuckDB abstraction. The cycle ensures that environment variables are read correctly and that sensitive keys are not logged or exposed. It includes creating the foundational `config.py` and implementing `ingestion/auth.py`, `ingestion/client.py`, `transform/features.py`, and `storage/parquet_db.py`.
-
-### CYCLE02
-**Features:** Backtesting and Statistical Validation
-This cycle introduces the analytical capabilities of the system. Utilizing the Parquet datasets created in Cycle 01, this cycle will implement the `analysis/stats.py` using `statsmodels` to verify if certain days exhibit statistically significant abnormal returns. Furthermore, it implements `analysis/backtest.py` utilizing `vectorbt` to build a trading simulation based on the discovered anomalies. The cycle will finish with complete integration tests proving the entire flow from API to statistical output functions flawlessly.
-
-## 6. Test Strategy
+## Implementation Plan
 
 ### CYCLE01
-- **Unit Testing**: Tests will use `pytest-mock` to isolate functions. The `transform/features.py` will be extensively unit tested using small, mocked Polars DataFrames containing known edge cases (e.g., a stock split date, missing data, weekend data).
-- **Integration Testing**: Storage components will be tested by ensuring Polars can write to a temporary Parquet file provided by the Pytest `tmp_path` fixture and that DuckDB can correctly read it back.
-- **Live E2E Testing**: A specific live test will connect to the J-Quants API using the actual credentials from `.env` to verify the ingestion logic and ensure rate limiting and pagination are correctly managed. This ensures the Free Tier requirements are actively validated.
-- **DB Rollback Rule**: For any database-like tests, transient connections or temporary file paths (`tmp_path`) will be utilized strictly, ensuring lightning-fast state resets without side effects on local disk.
+- **Focus:** Data Pipeline Construction (ETL & Storage).
+- **Features:**
+  1. Setup of the core Pydantic configurations and environment variable management to securely load `JQUANTS_REFRESH_TOKEN`.
+  2. Implementation of the `jquants_client` module to authenticate with the J-Quants API and fetch 12 weeks of historical daily stock data. This will strictly include exponential backoff and retry logic (e.g., using `tenacity`) to gracefully manage HTTP 429 Rate Limits and intermittent API outages inherent to free-tier connections.
+  3. Development of the `feature_engine` using Polars to ingest the raw J-Quants data and generate critical features: day of the week flag (1-5), month start/end flags, and various return metrics (daily, intraday, overnight).
+  4. Construction of the `parquet_duckdb` storage module to save the resulting Polars DataFrames as Parquet files to the local disk and instantiate a DuckDB connection for subsequent querying.
 
 ### CYCLE02
-- **Unit Testing**: `statsmodels` outputs will be validated against synthetically generated normal distributions created via `numpy.random` to prevent precision loss or uniformity issues. `vectorbt` logic will be verified using predictable, straight-line price trends to ensure correct calculation of Sharpe ratios and cumulative returns.
-- **Integration Testing**: The cycle will test the connection between the DuckDB/Parquet storage boundary and the analysis modules. Mocked local `.parquet` files generated in conftest will be passed into the analysis engines to verify correct typing and schema acceptance.
-- **E2E Testing**: A complete dry-run of the pipeline (offline, using cached Cycle 01 data) will ensure the entire process executes end-to-end flawlessly, guaranteeing verifiable research outputs.
+- **Focus:** Backtesting and Statistical Validation (Analysis).
+- **Features:**
+  1. Development of the `stats_tester` module. This module will load the transformed data from the DuckDB/Parquet storage layer and use `statsmodels` to perform a statistical test, verifying whether the distribution of returns on specific days (e.g., Mondays) shows statistically significant deviation from other days.
+  2. Construction of the `backtester` module using `vectorbt`. This engine will convert the Polars DataFrame into the required format, ingest generated signals (e.g., "Buy Monday Open, Sell Friday Close"), factor in transaction fees and slippage, and simulate the trading strategy.
+  3. Creation of the `BacktestMetrics` and `StatResult` Pydantic models to strictly structure the outputs of the analysis.
+  4. Integration of the complete pipeline, allowing a seamless run from data ingestion to backtest metric generation.
+
+## Test Strategy
+
+### CYCLE01
+- **Unit Testing:** Individual unit tests will focus on validating the logic within the Polars transformations (`feature_engine`) using small, synthetic datasets. Mocking will be strictly enforced for the `jquants_client` unit tests. We will use `pytest-mock` to intercept requests to the J-Quants API, returning predefined JSON structures to verify that the client parses responses correctly and handles simulated HTTP errors without executing actual network calls.
+- **Integration Testing:** A live integration test will be developed to hit the real J-Quants API. This test will verify that the end-to-end ETL flow functions correctly against live infrastructure. It will check if the authentication token is successfully exchanged, data is downloaded, transformed, and finally saved to disk as a Parquet file.
+- **DB Rollback Rule:** For tests involving the DuckDB storage module, a Pytest fixture will be utilised to create an isolated, in-memory DuckDB connection. This connection will be initialized before each test and discarded afterward, guaranteeing lightning-fast state resets and preventing cross-test contamination without the need for complex file cleanup operations. Temporary directories will be used when physical Parquet file creation must be verified.
+
+### CYCLE02
+- **Unit Testing:** Unit tests for the `stats_tester` will provide statically defined DataFrames where statistical significance is mathematically guaranteed (both significant and insignificant scenarios) to ensure `statsmodels` correctly identifies them. The `backtester` module will be tested by providing simple, predictable price series and deterministic signals to verify that `vectorbt` calculates the Sharpe ratio, total return, and win rate accurately, including the correct deduction of transaction fees.
+- **Integration Testing:** The full pipeline will be tested by passing historical, cached Parquet data through the statistical and backtesting engines. This ensures that the outputs of Cycle 1 are perfectly compatible with the inputs required by Cycle 2 modules.
+- **E2E Testing / UAT:** The final executable UAT notebook (`UAT_AND_TUTORIAL.py`) will be executed to guarantee the entire system works cohesively.
+- **DB Rollback Rule:** Similar to Cycle 1, any test relying on querying historical data via DuckDB will use transient, in-memory database connections populated from temporary Parquet files, ensuring complete isolation and rapid execution.
