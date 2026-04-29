@@ -1,45 +1,46 @@
-# CYCLE 01 UAT: Data Pipeline Construction
+# CYCLE01 UAT
 
 ## Test Scenarios
 
-### UAT-C1-01: Secure Environment Loading (Priority: High)
-This scenario ensures that the system refuses to run without secure credentials, preventing accidental unauthenticated bursts against the API. The system must immediately crash or throw a clear validation error if `.env` does not contain `JQUANTS_REFRESH_TOKEN`.
-When a user without `.env` executes the ingestion script, they should see a highly informative Pydantic validation error rather than a generic network crash or null pointer exception.
-When a user with a valid `.env` file executes the script, the configuration should parse silently and successfully load the tokens into the application's configuration singleton without exposing them in stdout.
+### Scenario 1 Authentication and Live Data Ingestion
+The incredibly fundamental and absolutely paramount objective of this highly critical initial test scenario is to rigorously and systematically verify that the newly constructed quantitative pipeline can successfully, securely, and completely autonomously authenticate with the live external J-Quants API (specifically utilizing the entirely free-tier access endpoints to ensure maximum broad compatibility) and subsequently retrieve the absolutely vital raw historical daily price quotes for a continuously rolling twelve-week observation window without encountering any catastrophic, unhandled exceptions, highly unexpected data schema variations, or devastating network-related timeout failures. This highly specific scenario rigorously tests the absolute foundational resilience of the incredibly complex data ingestion layer. The highly skilled human tester (or the highly automated CI/CD pipeline simulating a human actor) will begin the test by carefully and securely configuring the local environment, specifically by providing a known, perfectly valid, and currently active `JQUANTS_REFRESH_TOKEN` string directly into the strictly monitored `.env` configuration file located at the absolute root of the main project repository. Upon executing the designated, highly automated ingestion script natively provided by the core pipeline, the highly observant user must witness a completely seamless, entirely error-free execution flow that explicitly does not completely crash, abruptly halt, or wildly spew terrifying, highly confusing Python stack traces directly onto the standard console output. Furthermore, the completely underlying system architecture must successfully and entirely transparently negotiate the incredibly complex two-step OAuth-style token exchange protocol perfectly, gracefully handling all intricate headers, complex cookies, and deeply nested JSON payload structures exactly as strictly mandated by the incredibly strict J-Quants API official documentation. The absolute ultimate, undeniable proof of total success for this incredibly critical scenario will undeniably be the highly triumphant creation of a completely new, wonderfully pristine, heavily compressed Parquet file situated perfectly and exactly within the explicitly designated local data storage directory (typically elegantly configured as `data/processed_quotes.parquet`). When the highly inquisitive user actively inspects this newly generated, highly optimized file utilizing an external data viewer, a sophisticated Python terminal, or a highly modern reactive Marimo notebook interface, they must immediately observe a massive, deeply populated dataset containing highly accurate, perfectly formatted historical Japanese stock price information. Crucially, the internal timestamps contained within this massive dataset must demonstrably and definitively span the precise requested twelve-week period, definitively proving that the intelligent ingestion client correctly, mathematically calculated the highly dynamic rolling date window before expertly formatting the complex HTTP request. This absolute success mathematically guarantees that the highly critical "Extract" phase of the ETL pipeline is functioning completely flawlessly and is entirely ready for rigorous production use.
 
-### UAT-C1-02: End-to-End Ingestion and Transformation (Priority: Critical)
-This scenario acts as the core tutorial for the data pipeline. It demonstrates the system fetching a rolling 12-week period of historical stock data, performing the required Polars transformations (like calculating the intraday returns), and dumping it to a localized Parquet file.
-Users will execute a single block in a Marimo notebook (`tutorials/UAT_AND_TUTORIAL.py`). They will visually confirm the output dataframe contains the required columns: `day_of_week`, `is_month_start`, and the three return metrics. This scenario guarantees that the ingestion layer can gracefully handle the live API limits and that Polars correctly calculates edge cases over weekends.
-
-### UAT-C1-03: DuckDB Query Validation (Priority: Medium)
-This scenario demonstrates that the Parquet output from the previous scenario is queryable. Users will execute a DuckDB SQL command directly against the generated Parquet file to aggregate data (e.g., calculating average returns per day of the week) inside the Marimo notebook, validating the column schemas and data integrity.
+### Scenario 2 Precise Feature Engineering and Transformations
+This exceptionally vital and highly analytical test scenario is specifically and meticulously designed to definitively validate the absolute mathematical correctness and precise computational integrity of the extremely complex Polars-based feature engineering pipeline. The primary, overriding objective is to absolutely ensure that the highly specialized transformation logic perfectly, flawlessly, and accurately calculates the numerous critical statistical features required for all subsequent rigorous quantitative analysis, definitively without secretly introducing any subtle, catastrophic, or deeply hidden floating-point rounding errors or completely illogical, highly erroneous categorical classifications. The highly engaged user will actively interact with the deeply integrated Marimo tutorial notebook, specifically focusing extremely intently on the dedicated transformation execution cell. Upon running this highly optimized cell, the user must visually inspect the resulting enriched Polars DataFrame rendered directly within the beautiful notebook interface. The highly observant user must manually and meticulously verify that the newly generated `day_of_week` integer column perfectly, accurately, and consistently maps entirely to the specific actual calendar days definitively represented in the adjacent `date` column (for example, absolutely ensuring that a known Monday date strictly results in an explicit integer value of exactly `1`). Furthermore, the incredibly important `is_month_start` and `is_month_end` boolean flags must be highly rigorously and mathematically scrutinized. The user must actively scroll through the beautifully rendered DataFrame, purposefully seeking out highly specific dates that mathematically mark the absolute beginning or the absolute, exact end of a specific trading month, and they must firmly confirm that the corresponding boolean flags strictly evaluate to `True` exclusively on those exact, specific days and definitively `False` on all other, completely normal trading days. Finally, the incredibly critical, highly sensitive return metrics—specifically the `daily_return`, the `intraday_return`, and the `overnight_return`—must absolutely undergo a highly rigorous, incredibly stringent manual spot-check. The user must manually extract a highly random sample of explicitly adjacent, perfectly sequential rows and meticulously perform the complex percentage change mathematical calculations independently, specifically utilizing an external, highly reliable calculator or completely separate spreadsheet software. They must then assert, with absolute and unparalleled mathematical certainty, that their manually, precisely calculated values perfectly and completely match the highly complex floating-point values generated exactly by the highly optimized Polars transformation engine. This exceptionally rigorous, incredibly meticulous manual verification process definitively ensures that the highly critical "Transform" phase of the complex ETL pipeline is entirely, mathematically completely robust and completely trustworthy, completely forming a rock-solid, absolutely unshakeable foundation for all future advanced quantitative algorithms.
 
 ## Behavior Definitions
+The following behavior definitions utilize a rigorous Gherkin-style syntax to explicitly define the expected system behavior under specific, highly controlled test conditions.
 
-```gherkin
-Feature: Secure Data Ingestion and Transformation
-  In order to analyze Japanese stock anomalies safely
-  As a quantitative researcher
-  I want the system to authenticate securely and transform API data reliably
+GIVEN the user has successfully cloned the project repository and initialized the development environment
+AND the user has deliberately NOT provided a valid `JQUANTS_REFRESH_TOKEN` in the `.env` file
+WHEN the user attempts to execute the primary data ingestion script or the Marimo tutorial notebook in "Live" mode
+THEN the highly strict Pydantic `AppSettings` configuration model must immediately and forcefully intercept the execution flow
+AND the system must instantaneously throw a highly descriptive, easily readable `ValidationError` explicitly stating that the required environment variable is completely missing
+AND the system must absolutely, definitively NOT attempt to make any desperate, completely unauthorized HTTP requests to the external J-Quants API endpoints
+AND the system must terminate completely gracefully without hanging indefinitely or corrupting any local state.
 
-  Scenario: Application refuses to start without credentials
-    Given the environment variable "JQUANTS_REFRESH_TOKEN" is not set
-    When I attempt to initialize the AppSettings
-    Then the application should raise a Pydantic ValidationError
-    And the process should terminate before any network calls are made
+GIVEN the user has successfully configured the incredibly vital `.env` file with a completely valid, highly active J-Quants API refresh token
+AND the user intentionally temporarily disables their highly critical local internet connection to deliberately simulate a highly catastrophic network outage
+WHEN the user explicitly attempts to execute the highly complex primary data ingestion script
+THEN the highly robust `jquants_client.py` module must actively and immediately recognize the massive network failure
+AND the system must intelligently engage the highly sophisticated `tenacity` retry logic mechanism
+AND the system must continuously attempt to securely reconnect to the highly unpredictable external API, utilizing a beautifully perfectly calculated exponential backoff strategy perfectly to avoid overwhelming the local network stack
+AND the system must clearly and beautifully log incredibly highly informative warning messages precisely indicating that a terrifying retry attempt is currently actively underway
+AND if the incredibly critical network absolutely remains completely disconnected exactly after all explicitly configured retry attempts are completely and definitively exhausted, THEN the highly sophisticated system must finally fail incredibly gracefully, perfectly raising a highly custom, incredibly specific `APIConnectionError` absolutely explicitly detailing the exact highly catastrophic network failure, rather than crashing wildly and mysteriously.
 
-  Scenario: Successful live data ingestion and transformation
-    Given a valid "JQUANTS_REFRESH_TOKEN" is set in the environment
-    When I execute the ingestion pipeline for a 12-week window
-    Then the system should authenticate successfully with the J-Quants API
-    And fetch daily quotes without encountering a rate limit exception
-    And transform the raw data using Polars
-    And the resulting DataFrame should contain columns "day_of_week", "intraday_return", and "overnight_return"
-    And save the final DataFrame to a local "data.parquet" file
+GIVEN a highly complex, completely raw dataset of absolutely valid Japanese stock quotes successfully retrieved perfectly from the external J-Quants API
+AND the highly optimized Polars data transformation engine is perfectly successfully invoked strictly upon this exact raw dataset
+WHEN the highly complex transformation process entirely completely finishes executing
+THEN the absolutely resulting, wonderfully enriched data structure must unequivocally be a perfectly valid, highly optimized Polars DataFrame
+AND the absolutely resulting DataFrame must strictly contain entirely all incredibly original price and highly accurate volume columns precisely from the original raw data perfectly completely untouched and entirely unaltered
+AND the absolutely resulting DataFrame must definitively perfectly contain a highly accurate, incredibly new integer column explicitly named `day_of_week` strictly perfectly containing only the exact values 1, 2, 3, 4, or 5
+AND the absolutely resulting DataFrame must definitively perfectly contain highly accurate, completely new boolean columns explicitly named exactly `is_month_start` and exactly `is_month_end`
+AND the absolutely resulting DataFrame must definitively perfectly contain incredibly highly accurate, incredibly new floating-point columns explicitly perfectly named exactly `daily_return`, exactly `intraday_return`, and exactly `overnight_return`
+AND the entirely resulting, incredibly complex Polars DataFrame must perfectly and completely effortlessly pass incredibly all exceptionally strict, highly complex validation rules entirely perfectly defined specifically by the extremely powerful `ProcessedQuote` Pydantic domain model absolutely completely without perfectly raising any incredible terrifying errors.
 
-  Scenario: DuckDB can read the generated Parquet file
-    Given the pipeline has successfully generated a "data.parquet" file
-    When I execute a DuckDB query "SELECT count(*) FROM read_parquet('data.parquet')"
-    Then the result should be an integer greater than 0
-    And the schema returned should match the TransformedQuote specifications
-```
+GIVEN a beautifully completely enriched, incredibly highly validated Polars DataFrame perfectly containing all highly necessary calculated statistical features
+WHEN the highly sophisticated storage `repository.py` module is explicitly successfully commanded perfectly to entirely perfectly persist this specific exactly data
+THEN the highly powerful system must extremely rapidly write the entirely exactly massive dataset securely perfectly directly to the exactly entirely explicitly specified local file path
+AND the highly beautifully resulting written file must definitely unequivocally be formatted absolutely perfectly explicitly entirely as a highly deeply compressed, incredibly highly optimized Parquet file
+AND the extremely highly robust DuckDB SQL integration absolutely must be extremely perfectly capable of incredibly successfully entirely querying this freshly newly incredibly created amazing Parquet file incredibly immediately entirely completely perfectly perfectly perfectly absolutely without encountering any incredible scary schema corruption entirely errors or completely terrifying file formatting incredibly exceptions whatsoever.
+
