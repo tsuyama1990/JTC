@@ -1,108 +1,39 @@
-# Japanese Stock Calendar Anomaly Validation System
+# J-Quants Stock Data ETL Pipeline
 
-A robust, mathematically sound Proof of Concept (PoC) for ingesting, transforming, and analyzing calendar anomalies within Japanese equity markets. It leverages modern Python tools (Polars, DuckDB, vectorbt) to process live data from the J-Quants API, performing rigorous statistical tests and backtesting trading strategies.
+This project implements a highly robust ETL pipeline for fetching, transforming, and querying Japanese stock market data via the J-Quants API. It leverages Polars for hyper-fast mathematical transformations and Parquet/DuckDB for compressed, SQL-queriable data storage.
 
-![Build Status](https://img.shields.io/badge/build-passing-brightgreen)
+## Features
+- **Data Ingestion**: Reliably fetches daily quotes from the J-Quants API, utilizing exponential backoff (`tenacity`) to gracefully handle rate limits.
+- **Transformation Engine**: Computes daily returns, intraday returns, overnight returns, and extracts critical date features like month boundaries and days of the week using `Polars`.
+- **Validation**: Strict schema enforcement across the entire data lifecycle via `Pydantic` guarantees absolute data integrity.
+- **Storage**: Automatically compresses data into highly performant `.parquet` files.
+- **Querying**: Seamless integration with `DuckDB` allowing you to perform standard SQL queries directly against the parquet files without loading them into memory.
 
-## Key Features
+## Setup Instructions
 
-- **Automated Data Pipeline**: Seamlessly fetches the last 12 weeks of daily quotes from the J-Quants API with robust retry logic and error handling.
-- **High-Performance Transformations**: Utilizes Polars to rapidly compute daily, intraday, and overnight returns, along with calendar features (day-of-week, month-start/end).
-- **Zero-Config Storage**: Transparently saves processed data as heavily compressed Parquet files queryable instantly via DuckDB.
-- **Rigorous Statistical Validation**: Employs `statsmodels` to scientifically test hypotheses regarding market returns on specific days.
-- **Realistic Backtesting**: Integrates `vectorbt` to simulate calendar-based trading strategies, perfectly accounting for transaction fees and slippage.
-
-## Architecture Overview
-
-The system strictly decouples the volatile external API integration from the highly sensitive internal statistical logic using a layered approach enforcing strict Pydantic data schemas.
-
-```mermaid
-graph TD
-    A[Environment Variables .env] -->|Loaded securely| B(Configuration Layer Pydantic)
-    B --> C{Data Ingestion Layer}
-    C <-->|HTTP Requests| D((J-Quants API))
-    C -->|Raw Data| E(Transformation Layer Polars)
-    E -->|Processed Data| F[(Storage Layer Parquet & DuckDB)]
-    F -->|Query Data| G(Analysis Layer statsmodels)
-    F -->|Query Data| H(Backtesting Layer vectorbt)
-    G --> I[Statistical Results]
-    H --> J[Performance Metrics]
-```
-
-## Prerequisites
-
-- Python 3.12+
-- `uv` (for rapid dependency management)
-- Optional: A valid J-Quants API free-tier account (Refresh Token) for live execution.
-
-## Installation & Setup
-
-1. Clone the repository:
-```bash
-git clone <repository_url>
-cd <repository_directory>
-```
-
-2. Install dependencies using `uv`:
-```bash
-uv sync
-```
-
-3. Configure Environment Variables:
-```bash
-cp .env.example .env
-```
-Edit the `.env` file and append your J-Quants API refresh token: `JQUANTS_REFRESH_TOKEN=your_token_here`.
+1. **Install dependencies**
+   ```bash
+   uv sync
+   ```
+2. **Configure Environment**
+   You need a J-Quants API Refresh Token to use the live pipeline.
+   Copy the `.env.example` file to a new file named `.env`:
+   ```bash
+   cp .env.example .env
+   ```
+   Open `.env` and paste your actual Refresh Token:
+   `JQUANTS_REFRESH_TOKEN=your_real_token_here`
 
 ## Usage
 
-### Quick Start with Marimo
-
-The entire UAT and tutorial suite is packaged in a single, reactive Marimo notebook. It supports both Mock Mode (no API key required) and Real Mode.
+You can run the User Acceptance Testing (UAT) script to see the entire pipeline execute from API ingestion to final DuckDB SQL queries:
 
 ```bash
-uv run marimo edit tutorials/UAT_AND_TUTORIAL.py
+PYTHONPATH=. uv run python tests/uat/uat_verification.py
 ```
 
-### Standard Execution
-
-Execute the main pipeline directly to fetch data, run statistics, and output backtest metrics to the console.
-
+### Testing the Codebase
+To run the automated suite:
 ```bash
-uv run python main.py
+PYTHONPATH=. uv run pytest --cov=src
 ```
-
-## Development Workflow
-
-The project strictly enforces code quality using `ruff` (max complexity 10) and `mypy` (strict mode). All configurations are defined in `pyproject.toml`.
-
-- **Run Linters and Type Checkers**:
-```bash
-uv run ruff check .
-uv run mypy .
-```
-
-- **Run Tests (with Coverage)**:
-```bash
-uv run pytest
-```
-*Note: The test suite aggressively mocks external API calls to guarantee sandbox resilience and rapid execution.*
-
-## Project Structure
-
-```text
-src/
-├── core/            # Pydantic configuration & exceptions
-├── domain/          # Strict Pydantic models & schemas
-├── ingestion/       # J-Quants API client and fetch logic
-├── processing/      # Polars transformations and feature engineering
-├── storage/         # DuckDB repository and Parquet file I/O
-└── analysis/        # statsmodels and vectorbt integrations
-tests/               # Pytest suite with strict mocking
-tutorials/           # Marimo UAT notebooks
-dev_documents/       # Architectural plans and specifications
-```
-
-## License
-
-MIT
