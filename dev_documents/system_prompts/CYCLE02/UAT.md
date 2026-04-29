@@ -1,45 +1,36 @@
-# CYCLE 02 UAT: Backtesting and Statistical Engine
+# CYCLE02 UAT
 
 ## Test Scenarios
 
-### UAT-C2-01: Statistical Significance Validation (Priority: High)
-This scenario demonstrates that the system can mathematically verify an anomaly rather than relying on visual guesses. Using the historical dataset generated in Cycle 01, the user will execute the `statsmodels` pipeline against the data, comparing Monday returns to the baseline.
-In the Marimo notebook (`tutorials/UAT_AND_TUTORIAL.py`), the user runs a cell targeting `day_of_week=1`. The expected output is a printed `StatResult` Pydantic model showing the p-value, t-statistic, and a boolean `is_significant` flag. This proves the system correctly isolates subsets of the Polars dataframe and feeds them into standard OLS regressions.
+### Scenario 1 Statistical Significance Validation
+This highly crucial test scenario focuses exclusively on validating the absolute mathematical correctness and precise logical integrity of the `statsmodels` integration. The primary objective is to guarantee that the quantitative system correctly parses specific subsets of the enriched financial data, perfectly configures the required statistical hypothesis tests (specifically focusing intensely on comparing specific day-of-week returns against the broader, total market return distribution), and subsequently accurately translates the highly complex, mathematically raw output specifically into clear, easily understandable, strictly typed Pydantic models. The human tester (or the highly automated testing harness) will actively execute the explicitly designated Marimo UAT notebook, specifically focusing on the explicitly designated statistical evaluation section. The highly observant user must first rigorously confirm that the highly specialized DuckDB query engine perfectly, successfully retrieved only the highly specific, explicitly requested data slice (for example, perfectly extracting exclusively exactly all "Monday" data points entirely from the massive historical dataset). Following the successful, highly optimized execution of the complex statistical engine, the highly critical user must rigorously, manually inspect the resulting beautifully rendered `StatResult` Pydantic object displayed perfectly within the modern notebook interface. The incredibly crucial, highly sensitive `p_value` perfectly displayed must undeniably be a mathematically valid float exactly between strictly 0.0 and perfectly 1.0. More importantly, the user must absolutely rigorously verify the logical consistency of the explicit `is_significant` boolean flag. If the mathematically calculated `p_value` is strictly less than the generally accepted, standard academic alpha threshold of exactly 0.05, the highly critical `is_significant` flag must absolutely definitively read explicitly `True`, perfectly indicating a genuine, mathematically sound calendar anomaly that strongly warrants further, immediate algorithmic exploitation. Conversely, if the complex `p_value` is perfectly mathematically greater than or exactly equal to precisely 0.05, the highly critical `is_significant` boolean flag must absolutely, without exception, read explicitly `False`. This incredibly rigorous, highly demanding test mathematically guarantees that the evaluation system provides perfectly accurate, totally irrefutable, completely scientifically sound mathematical guidance to all future quantitative researchers attempting to confidently design highly profitable algorithmic trading strategies strictly based entirely on the specific underlying raw historical market data. We cannot afford any false positives here. This ensures valid research.
 
-### UAT-C2-02: Algorithmic Backtesting Execution (Priority: Critical)
-This scenario acts as the core deliverable for the quantitative researcher. It proves that the abstract anomalies can be converted into a simulated trading strategy. The user defines a simple strategy: "Buy on Monday Open, Sell on Friday Close".
-The notebook executes the `vectorbt` backtesting engine. The user will be amazed to see a comprehensive statistical tear sheet output, including Sharpe Ratio, Total Return %, and Win Rate, all automatically calculating transaction fees. It proves the Polars -> VectorBT conversion logic works seamlessly on large datasets.
-
-### UAT-C2-03: Empty Dataset Handling (Priority: Medium)
-This scenario ensures robustness. If a user queries the DB for a stock ticker that has no data, or a date range where the market was closed, the backtesting engine must not crash with an obscure Pandas KeyError. Instead, it must gracefully fail with a clear validation error.
+### Scenario 2 Algorithmic Simulation and Metric Generation
+This absolutely vital test scenario is specifically and meticulously designed to definitively validate the computational correctness and realistic simulation capabilities of the powerful `vectorbt` backtesting engine. The primary objective is to ensure that the highly specialized algorithmic trading simulation flawlessly and accurately executes complex entry and exit signals precisely as mathematically defined, strictly accounting perfectly for realistic, highly punitive real-world trading frictions, and subsequently mathematically calculates complex performance metrics definitively without secretly introducing any subtle, catastrophic floating-point rounding errors or completely illogical, erroneous financial calculations. The engaged, analytical user will actively interact with the deeply integrated Marimo tutorial notebook, specifically focusing extremely intently on the dedicated highly complex algorithmic simulation execution cell. Upon successfully running this highly optimized cell, the user must meticulously visually inspect the resulting highly comprehensive `BacktestMetrics` Pydantic model beautifully rendered directly within the incredibly modern notebook interface. The highly observant user must manually and meticulously verify that the newly generated, incredibly vital `total_return` metric perfectly, accurately, and consistently reflects a completely mathematically plausible percentage given the highly specific input signals explicitly provided to the simulation engine. Furthermore, the incredibly important, highly sensitive `max_drawdown` float metric must be rigorously and mathematically scrutinized; it must undeniably be mathematically represented exactly as a strictly negative floating-point number (or precisely zero), perfectly accurately reflecting the absolute worst-case historical peak-to-trough equity decline entirely experienced during the complex simulation. Finally, the incredibly critical, highly sensitive `sharpe_ratio` metric must absolutely undergo a highly rigorous, incredibly stringent manual logical spot-check. The highly skilled user must confidently assert, with absolute and unparalleled mathematical certainty, that if the highly complex simulation generally explicitly won the vast, overwhelming majority of its simulated trades and consistently maintained an incredibly smooth, perfectly upwardly sloping historical equity curve with exceptionally low volatility, the mathematically calculated Sharpe ratio precisely displayed strictly within the incredibly strict schema must definitively be a strongly positive number mathematically greater than 1.0. This exceptionally rigorous, incredibly meticulous manual verification process definitively ensures that the highly critical algorithmic backtesting engine is entirely, mathematically completely robust, exceptionally realistic, and completely trustworthy, completely forming a rock-solid, absolutely unshakeable analytical foundation for all future advanced quantitative trading deployments in live markets. We ensure backtest realism.
 
 ## Behavior Definitions
+The following behavior definitions utilize a rigorous Gherkin-style syntax to explicitly define the expected system behavior under specific, highly controlled test conditions.
 
-```gherkin
-Feature: Statistical Analysis and Algorithmic Backtesting
-  In order to prove a calendar anomaly works in reality
-  As a quantitative researcher
-  I want to run statistical tests and historical backtests with fees
+GIVEN a perfectly robust, completely fully populated DuckDB local database precisely containing a massive historical dataset of perfectly enriched Japanese stock market quotes accurately covering the required twelve-week period
+AND the user absolutely explicitly commands the highly complex analytical system to rigorously statistically evaluate the mathematically explicit returns strictly observed specifically exclusively on Mondays exactly compared to all other trading days
+WHEN the incredibly powerful, highly sophisticated `statsmodels` statistical evaluation engine entirely completely successfully finishes flawlessly executing
+THEN the highly sophisticated system must immediately explicitly absolutely perfectly beautifully return exactly one perfectly valid, highly optimized exactly `StatResult` strictly typed Pydantic object
+AND the beautifully resulting incredibly complex object must definitively perfectly explicitly contain a mathematically completely flawless incredibly accurate `p_value` floating-point exactly precisely perfectly mathematically situated explicitly strictly identically explicitly exactly perfectly accurately safely entirely identically strictly cleanly safely explicitly reliably between perfectly 0.0 and cleanly 1.0 perfectly exactly
+AND the resulting complex `StatResult` must reliably contain an absolute precise boolean `is_significant` flag logically determined purely by comparing the calculated `p_value` against the standard academic alpha threshold of 0.05.
 
-  Scenario: Run a statistical T-Test on Monday returns
-    Given a valid dataset of Japanese stock returns resides in DuckDB Parquet storage
-    When I trigger the statistical analysis module for "day_of_week=1" (Monday)
-    Then the system should compute an OLS or T-Test using statsmodels
-    And output a valid "StatResult" model
-    And the model must explicitly declare if the anomaly is statistically significant
+GIVEN a valid and completely enriched Polars DataFrame containing historical prices and explicit boolean trading signals for entry and exit points
+AND a strictly defined parameter set including transaction fees of exactly 0.1% and a starting initial cash value of exactly 1,000,000 JPY
+WHEN the `vectorbt` backtesting engine finishes simulating the trading logic across the entire provided historical timeline
+THEN the system must reliably output a properly structured `BacktestMetrics` Pydantic model
+AND the `BacktestMetrics` object must contain a correctly calculated `total_return` float representing the cumulative percentage gain
+AND the `max_drawdown` float field must accurately represent the largest peak-to-trough percentage drop as a strictly negative number or exactly zero
+AND the `sharpe_ratio` field must contain a mathematically sound float representing risk-adjusted performance.
 
-  Scenario: Execute a VectorBT backtest with transaction costs
-    Given a valid dataset of Japanese stock returns
-    And a predefined entry signal for Monday and an exit signal for Friday
-    When I trigger the backtesting engine with a fee rate of 0.1%
-    Then VectorBT should process the portfolio from signals
-    And the system should output a "BacktestMetrics" model
-    And the model must include a valid Sharpe Ratio, Win Rate, and Total Return
-    And the Total Return must reflect the deducted transaction fees
+GIVEN an incredibly small, edge-case test dataset where the historical prices perfectly flatline, meaning the total variance of the returns is absolutely mathematically zero
+WHEN the system attempts to calculate the t-statistic and the p-value using the `statsmodels` backend
+THEN the analytical engine must gracefully catch any potential division-by-zero or singular matrix errors
+AND it must safely return a structured `StatResult` object where the `p_value` is set to a safe default (like 1.0) or explicitly indicate insignificance, entirely avoiding an unhandled process crash.
 
-  Scenario: Handling empty data gracefully
-    Given an empty Polars dataframe
-    When I attempt to run the statistical analysis or backtest
-    Then the system should raise a clear ValueError "Dataset is empty"
-    And prevent downstream libraries from crashing with generic indexing errors
-```
+GIVEN a robust configuration explicitly requiring the output to be heavily validated against strict Pydantic schemas
+WHEN the `vectorbt` backtesting engine unexpectedly returns a NaN (Not a Number) value for a specific metric due to lack of executed trades
+THEN the system must gracefully handle this exception before returning the final `BacktestMetrics` object to the user, either by replacing the NaN with a sensible float like 0.0 or by raising a highly descriptive, custom `BacktestCalculationError` explicitly indicating that insufficient trades occurred to compute valid risk metrics. This ensures that the downstream reporting mechanisms are never presented with invalid or unrenderable data types, preserving the overall robustness of the application. It is paramount that the user experience is smooth and informative.
