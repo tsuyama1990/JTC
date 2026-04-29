@@ -4,14 +4,26 @@ version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.12"
-dependencies = []
+dependencies = [
+    "duckdb>=1.5.2",
+    "numpy>=2.4.4",
+    "pandas>=3.0.2",
+    "polars>=1.40.1",
+    "pydantic>=2.13.3",
+    "pydantic-settings>=2.14.0",
+    "requests>=2.33.1",
+    "tenacity>=9.1.4",
+]
 
 [dependency-groups]
 dev = [
+    "marimo>=0.23.4",
     "mypy>=1.20.2",
     "pytest>=9.0.3",
     "pytest-cov>=7.1.0",
+    "pytest-mock>=3.15.1",
     "ruff>=0.15.12",
+    "types-requests>=2.33.0.20260408",
 ]
 
 [tool.ruff]
