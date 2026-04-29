@@ -1,28 +1,40 @@
 ============================= test session starts ==============================
-platform linux -- Python 3.14.3, pytest-9.0.2, pluggy-1.6.0
+platform linux -- Python 3.12.13, pytest-9.0.3, pluggy-1.6.0
 rootdir: /app
 configfile: pyproject.toml
 testpaths: tests
-plugins: mock-3.15.1, cov-7.1.0
-collected 11 items
+plugins: mock-3.15.1, cov-7.1.0, anyio-4.13.0
+collected 12 items
 
-tests/test_analysis.py .........                                         [ 81%]
-tests/test_config.py ..                                                  [100%]
+tests/test_ingestion.py .....                                            [ 41%]
+tests/test_integration.py .s                                             [ 58%]
+tests/test_transformation.py .....                                       [100%]
 
+=============================== warnings summary ===============================
+tests/test_integration.py:76
+  /app/tests/test_integration.py:76: PytestUnknownMarkWarning: Unknown pytest.mark.live - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+    @pytest.mark.live
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
 ================================ tests coverage ================================
-_______________ coverage: platform linux, python 3.14.3-final-0 ________________
+_______________ coverage: platform linux, python 3.12.13-final-0 _______________
 
-Name                       Stmts   Miss  Cover   Missing
---------------------------------------------------------
-src/__init__.py                0      0   100%
-src/analysis/__init__.py       3      0   100%
-src/analysis/backtest.py      23      0   100%
-src/analysis/stats.py         21      0   100%
-src/config.py                 10      0   100%
-src/domain/__init__.py         2      0   100%
-src/domain/analysis.py         5      0   100%
-src/domain/features.py         0      0   100%
-src/domain/jquants.py          0      0   100%
---------------------------------------------------------
-TOTAL                         64      0   100%
-============================= 11 passed in 14.33s ==============================
+Name                                     Stmts   Miss  Cover   Missing
+----------------------------------------------------------------------
+src/__init__.py                              0      0   100%
+src/config/__init__.py                       2      0   100%
+src/config/settings.py                       8      1    88%   14
+src/domain_models/__init__.py                3      0   100%
+src/domain_models/raw_quote.py              39      1    97%   44
+src/domain_models/transformed_quote.py       2      0   100%
+src/ingestion/__init__.py                    2      0   100%
+src/ingestion/jquants_client.py             59      6    90%   33-34, 38-39, 57-58
+src/storage/__init__.py                      2      0   100%
+src/storage/parquet_duckdb.py               12      0   100%
+src/transformation/__init__.py               2      0   100%
+src/transformation/feature_engine.py        25      3    88%   28-29, 42
+----------------------------------------------------------------------
+TOTAL                                      156     11    93%
+=================== 11 passed, 1 skipped, 1 warning in 4.04s ===================
+/app/.venv/lib/python3.12/site-packages/coverage/inorout.py:561: CoverageWarning: Module dev_src was never imported. (module-not-imported); see https://coverage.readthedocs.io/en/7.13.5/messages.html#warning-module-not-imported
+  self.warn(f"Module {pkg} was never imported.", slug="module-not-imported")

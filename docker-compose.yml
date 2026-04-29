@@ -1,0 +1,5 @@
+services:
+  agent:
+    build: .
+    volumes:
+      - ./data:/app/data
