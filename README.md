@@ -1,108 +1,60 @@
-# Japanese Stock Calendar Anomaly Validation System
+# J-Quants Data Pipeline
 
-A robust, mathematically sound Proof of Concept (PoC) for ingesting, transforming, and analyzing calendar anomalies within Japanese equity markets. It leverages modern Python tools (Polars, DuckDB, vectorbt) to process live data from the J-Quants API, performing rigorous statistical tests and backtesting trading strategies.
+A robust data pipeline for fetching, validating, and transforming daily stock quotes from the J-Quants API into an optimized Parquet dataset using DuckDB and Polars.
 
-![Build Status](https://img.shields.io/badge/build-passing-brightgreen)
+## Features
 
-## Key Features
+- **Robust External Ingestion:** Fetches the last 12 weeks of daily quotes with intelligent retry algorithms and exponential backoff.
+- **Strict Data Validation:** Utilizes Pydantic schemas to strictly validate financial boundaries (e.g. `high >= low`) and enforce structure.
+- **High-Performance Transformation:** Uses Polars to rapidly compute daily, intraday, and overnight returns, as well as metadata features like `day_of_week`, `is_month_start`, and `is_month_end`.
+- **Local Storage Integration:** Persists the enriched data into efficiently compressed Parquet files.
+- **SQL Analytics:** Easily query the resulting Parquet files with standard SQL using DuckDB.
 
-- **Automated Data Pipeline**: Seamlessly fetches the last 12 weeks of daily quotes from the J-Quants API with robust retry logic and error handling.
-- **High-Performance Transformations**: Utilizes Polars to rapidly compute daily, intraday, and overnight returns, along with calendar features (day-of-week, month-start/end).
-- **Zero-Config Storage**: Transparently saves processed data as heavily compressed Parquet files queryable instantly via DuckDB.
-- **Rigorous Statistical Validation**: Employs `statsmodels` to scientifically test hypotheses regarding market returns on specific days.
-- **Realistic Backtesting**: Integrates `vectorbt` to simulate calendar-based trading strategies, perfectly accounting for transaction fees and slippage.
+## Installation
 
-## Architecture Overview
-
-The system strictly decouples the volatile external API integration from the highly sensitive internal statistical logic using a layered approach enforcing strict Pydantic data schemas.
-
-```mermaid
-graph TD
-    A[Environment Variables .env] -->|Loaded securely| B(Configuration Layer Pydantic)
-    B --> C{Data Ingestion Layer}
-    C <-->|HTTP Requests| D((J-Quants API))
-    C -->|Raw Data| E(Transformation Layer Polars)
-    E -->|Processed Data| F[(Storage Layer Parquet & DuckDB)]
-    F -->|Query Data| G(Analysis Layer statsmodels)
-    F -->|Query Data| H(Backtesting Layer vectorbt)
-    G --> I[Statistical Results]
-    H --> J[Performance Metrics]
-```
-
-## Prerequisites
-
-- Python 3.12+
-- `uv` (for rapid dependency management)
-- Optional: A valid J-Quants API free-tier account (Refresh Token) for live execution.
-
-## Installation & Setup
-
-1. Clone the repository:
-```bash
-git clone <repository_url>
-cd <repository_directory>
-```
-
-2. Install dependencies using `uv`:
-```bash
-uv sync
-```
-
-3. Configure Environment Variables:
-```bash
-cp .env.example .env
-```
-Edit the `.env` file and append your J-Quants API refresh token: `JQUANTS_REFRESH_TOKEN=your_token_here`.
+1. Ensure you have [`uv`](https://github.com/astral-sh/uv) installed on your system.
+2. Clone this repository.
+3. Install dependencies:
+   ```bash
+   uv sync
+   ```
+4. Copy the environment variables example file and fill in your details:
+   ```bash
+   cp .env.example .env
+   ```
+   *Note: Add your actual J-Quants refresh token to the `.env` file.*
 
 ## Usage
 
-### Quick Start with Marimo
+You can fetch and transform quotes directly using the pipeline components. Below is a minimal script example to get started:
 
-The entire UAT and tutorial suite is packaged in a single, reactive Marimo notebook. It supports both Mock Mode (no API key required) and Real Mode.
+```python
+import os
+from src.clients.jquants_client import JQuantsClient
+from src.processing.transformers import transform_quotes
+from src.storage.repository import save_quotes, query_quotes
 
-```bash
-uv run marimo edit tutorials/UAT_AND_TUTORIAL.py
+# 1. Initialize client with your token
+client = JQuantsClient(refresh_token=os.environ["JQUANTS_REFRESH_TOKEN"])
+
+# 2. Fetch the last 12 weeks of data for a specific stock code (e.g., "8697" for JPX)
+quotes = client.fetch_quotes("8697")
+
+# 3. Transform the raw data into enriched Polars DataFrame
+df = transform_quotes(quotes)
+
+# 4. Save to a local Parquet file
+save_quotes(df, "data/processed_quotes.parquet")
+
+# 5. Query the saved data with DuckDB
+result = query_quotes("data/processed_quotes.parquet", "SELECT * FROM 'data/processed_quotes.parquet' WHERE day_of_week = 1")
+print(result)
 ```
 
-### Standard Execution
+## Structure
 
-Execute the main pipeline directly to fetch data, run statistics, and output backtest metrics to the console.
-
-```bash
-uv run python main.py
-```
-
-## Development Workflow
-
-The project strictly enforces code quality using `ruff` (max complexity 10) and `mypy` (strict mode). All configurations are defined in `pyproject.toml`.
-
-- **Run Linters and Type Checkers**:
-```bash
-uv run ruff check .
-uv run mypy .
-```
-
-- **Run Tests (with Coverage)**:
-```bash
-uv run pytest
-```
-*Note: The test suite aggressively mocks external API calls to guarantee sandbox resilience and rapid execution.*
-
-## Project Structure
-
-```text
-src/
-├── core/            # Pydantic configuration & exceptions
-├── domain/          # Strict Pydantic models & schemas
-├── ingestion/       # J-Quants API client and fetch logic
-├── processing/      # Polars transformations and feature engineering
-├── storage/         # DuckDB repository and Parquet file I/O
-└── analysis/        # statsmodels and vectorbt integrations
-tests/               # Pytest suite with strict mocking
-tutorials/           # Marimo UAT notebooks
-dev_documents/       # Architectural plans and specifications
-```
-
-## License
-
-MIT
+- `src/domain_models/`: Pydantic models enforcing data contracts.
+- `src/clients/`: Robust API clients with resilient retry mechanisms.
+- `src/processing/`: Lightning-fast data transformations powered by Polars.
+- `src/storage/`: Clean abstraction for writing Parquet and querying with DuckDB.
+- `tests/`: Comprehensive unit, E2E, and UAT test suites.
