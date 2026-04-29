@@ -26,3 +26,9 @@ Aborting
 [2026-04-29 05:29:26,755] [INFO] [N/A] Found sessionCompleted activity - session is genuinely complete
 [2026-04-29 05:29:27,468] [INFO] [N/A] Checking out branch: jules-13747040897521189400-6855b863...
 [2026-04-29 05:29:27,488] [INFO] [N/A] Uncommitted changes detected. Auto-committing...
+[2026-04-29 05:29:27,498] [INFO] [N/A] ✓ Auto-committed changes.
+[2026-04-29 05:29:27,502] [ERROR] [N/A] Failed to checkout 'jules-13747040897521189400-6855b863'. Please check git status.
+[2026-04-29 05:29:27,510] [WARNING] [N/A] Failed to save diagnostic snapshot or perform RCA: Object of type CommitteeState is not JSON serializable
+[2026-04-29 05:29:27,510] [INFO] [N/A] Removing Git Worktree for cycle 01...
+[2026-04-29 05:29:27,516] [INFO] [N/A] ✓ Deleted temporary branch isolated-cycle-01-feat/generate-architecture-202604d232609
+[2026-04-29 05:29:27,517] [INFO] [N/A] ✓ Worktree directory logs/worktrees/cycle_01 cleaned up.
