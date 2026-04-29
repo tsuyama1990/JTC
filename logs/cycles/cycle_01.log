@@ -90,3 +90,9 @@ hint: See the 'Note about fast-forwards' in 'git push --help' for details.
 [2026-04-29 10:15:36,667] [INFO] [N/A] Captured last_processed_commit for feature/cycle01-data-pipeline-6174066316877702497: bd9a373cf494ff3b1373ff17df6f5c453a1daa1f
 [2026-04-29 10:15:37,077] [INFO] [N/A] Checking out branch: feature/cycle01-data-pipeline-6174066316877702497...
 [2026-04-29 10:15:37,087] [INFO] [N/A] Uncommitted changes detected. Auto-committing...
+[2026-04-29 10:15:37,099] [INFO] [N/A] ✓ Auto-committed changes.
+[2026-04-29 10:15:37,102] [ERROR] [N/A] Failed to checkout 'feature/cycle01-data-pipeline-6174066316877702497'. Please check git status.
+[2026-04-29 10:15:37,137] [WARNING] [N/A] Failed to save diagnostic snapshot or perform RCA: Object of type CommitteeState is not JSON serializable
+[2026-04-29 10:15:37,139] [INFO] [N/A] Removing Git Worktree for cycle 01...
+[2026-04-29 10:15:37,145] [INFO] [N/A] ✓ Deleted temporary branch isolated-cycle-01-feat/generate-architecture-202604d060732
+[2026-04-29 10:15:37,146] [INFO] [N/A] ✓ Worktree directory logs/worktrees/cycle_01 cleaned up.
