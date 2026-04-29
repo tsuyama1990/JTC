@@ -1,28 +1,28 @@
 ============================= test session starts ==============================
-platform linux -- Python 3.14.3, pytest-9.0.2, pluggy-1.6.0
+platform linux -- Python 3.12.13, pytest-9.0.3, pluggy-1.6.0
 rootdir: /app
 configfile: pyproject.toml
 testpaths: tests
-plugins: mock-3.15.1, cov-7.1.0
-collected 11 items
+plugins: mock-3.15.1, cov-7.1.0, anyio-4.13.0
+collected 16 items
 
-tests/test_analysis.py .........                                         [ 81%]
-tests/test_config.py ..                                                  [100%]
+tests/e2e/test_jquants_client.py ...                                     [ 18%]
+tests/e2e/test_live.py s                                                 [ 25%]
+tests/e2e/test_repository.py .                                           [ 31%]
+tests/unit/test_models.py .........                                      [ 87%]
+tests/unit/test_transformers.py ..                                       [100%]
 
 ================================ tests coverage ================================
-_______________ coverage: platform linux, python 3.14.3-final-0 ________________
+_______________ coverage: platform linux, python 3.12.13-final-0 _______________
 
-Name                       Stmts   Miss  Cover   Missing
---------------------------------------------------------
-src/__init__.py                0      0   100%
-src/analysis/__init__.py       3      0   100%
-src/analysis/backtest.py      23      0   100%
-src/analysis/stats.py         21      0   100%
-src/config.py                 10      0   100%
-src/domain/__init__.py         2      0   100%
-src/domain/analysis.py         5      0   100%
-src/domain/features.py         0      0   100%
-src/domain/jquants.py          0      0   100%
---------------------------------------------------------
-TOTAL                         64      0   100%
-============================= 11 passed in 14.33s ==============================
+Name                            Stmts   Miss  Cover   Missing
+-------------------------------------------------------------
+src/domain_models/__init__.py       3      0   100%
+src/domain_models/config.py         4      0   100%
+src/domain_models/manifest.py      29      0   100%
+src/jquants_client.py              36      7    81%   19-23, 65-67
+src/repository.py                  22      2    91%   26-27
+src/transformers.py                12      1    92%   12
+-------------------------------------------------------------
+TOTAL                             106     10    91%
+======================== 15 passed, 1 skipped in 7.56s =========================
