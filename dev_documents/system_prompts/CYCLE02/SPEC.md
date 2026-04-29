@@ -9,7 +9,12 @@ The primary objective of CYCLE02 is to implement the analytical core of the syst
 There are no new external API secrets required for CYCLE02. The system will continue to utilize the `JQUANTS_REFRESH_TOKEN` established in CYCLE01 for any end-to-end runs.
 
 ### B. System Configurations (`docker-compose.yml`)
-No modifications to `docker-compose.yml` are required for this cycle. The analytical engines run entirely within the local Python environment using in-memory and local disk resources.
+The Coder MUST update `docker-compose.yml` to expose the default Marimo notebook port. This allows the interactive UAT notebook to be accessed if the system is executed within a containerized environment.
+```yaml
+    ports:
+      - "2718:2718"
+```
+Explicitly instruct the Coder to preserve valid YAML formatting and idempotency (do not overwrite existing agent configs).
 
 ### C. Sandbox Resilience (CRITICAL TEST STRATEGY)
 **Mandate Mocking:** While CYCLE02 does not directly invoke external APIs, its integration tests depend on the outputs of CYCLE01. The Coder MUST ensure that all integration tests for CYCLE02 utilise *cached, mock Parquet files* or *synthetic DataFrames* rather than triggering the CYCLE01 live ingestion process. Attempting live ingestion during automated testing without a valid API key will cause pipeline failures.
@@ -71,10 +76,10 @@ This cycle relies on Pydantic schemas to strictly type the analytical outputs.
 2.  **Backtesting Engine**:
     - Implement `src/analysis/backtester.py`.
     - Import `vectorbt`.
-    - Accept the enriched Polars DataFrame (converted to Pandas as required by `vectorbt`).
+    - Accept the enriched Polars DataFrame. Explicitly perform a high-efficiency conversion to Pandas (`.to_pandas()`) as `vectorbt` internally requires Pandas/NumPy structures.
     - Implement a signal generation logic: Create boolean arrays for `entries` (e.g., True when `day_of_week == 1` at the Open) and `exits` (e.g., True when `day_of_week == 5` at the Close).
-    - Initialise the `vbt.Portfolio.from_signals` object. Crucially, pass the price series and include `fees=0.001` (0.1% transaction fee) and slippage parameters to simulate real-world trading friction.
-    - Extract the performance metrics from the `Portfolio` object and map them into the `BacktestMetrics` Pydantic model.
+    - Initialise the `vbt.Portfolio.from_signals` object. Crucially, pass the price series and strictly include `fees=0.001` (0.1% transaction fee) and defined slippage parameters to simulate real-world trading friction.
+    - Extract the performance metrics from the `Portfolio` object and map them back into the strict `BacktestMetrics` Pydantic model for boundary validation.
 
 3.  **Pipeline Orchestration**:
     - Implement `src/pipeline.py` to provide high-level orchestrating functions that tie all modules together, allowing a user to run the entire E2E process with a single command.

@@ -13,7 +13,12 @@ JQUANTS_REFRESH_TOKEN=
 ```
 
 ### B. System Configurations (`docker-compose.yml`)
-Currently, there are no specific non-confidential environmental setups required to be placed directly into a `docker-compose.yml` for this specific cycle, as the execution relies primarily on local Python environments and local file storage. Should future deployment require it, ensure standard Python image setups are preserved. Do not overwrite existing agent configurations if modifying infrastructure files.
+The Coder MUST update the `docker-compose.yml` to include explicit local volume mounts for the data directory to ensure that DuckDB databases and Parquet files persist between container restarts.
+```yaml
+    volumes:
+      - ./data:/app/data
+```
+Explicitly instruct the Coder to preserve valid YAML formatting and idempotency (do not overwrite existing agent configs).
 
 ### C. Sandbox Resilience (CRITICAL TEST STRATEGY)
 **Mandate Mocking:** The Coder MUST explicitly ensure that *all external API calls relying on the newly defined secrets in `.env.example` MUST be mocked in unit and integration tests (using `unittest.mock` or `pytest-mock`)*.
@@ -69,12 +74,10 @@ This system relies on robust Pydantic-based schemas to define domain concepts an
   - **Consumers/Producers**: Produced by `jquants_client`, consumed by `feature_engine`.
 
 - **`src/domain/transformed_quote.py`**:
-  - **Concept**: An enriched representation of the stock quote containing calculated analytical features.
-  - **Constraints**: Inherits base quote attributes and adds `day_of_week` (integer 1-5 representing Monday-Friday), `is_month_start` (boolean), `is_month_end` (boolean), `daily_return` (float), `intraday_return` (float), and `overnight_return` (float).
-  - **Validation**: Calculates returns strictly based on the previous or current day's closing and opening prices. Prevents division by zero errors during percentage calculations.
-  - **Consumers/Producers**: Produced by `feature_engine`, consumed by `parquet_duckdb` for storage and ultimately by the analysis modules in Cycle 02.
-
-Backward compatibility is maintained by ensuring `TransformedQuote` is an additive model; it does not remove original fields from `RawQuote`.
+  - *DEPRECATED/REMOVED for Performance:* Do not instantiate a `TransformedQuote` Pydantic model. To achieve optimal C-level execution speeds over millions of rows, the enriched representation must strictly exist as a native Polars DataFrame with an explicitly defined and validated Polars Schema.
+  - **Constraints**: The Polars Schema must include the base attributes and append `day_of_week` (pl.Int8), `is_month_start` (pl.Boolean), `is_month_end` (pl.Boolean), `daily_return` (pl.Float64), `intraday_return` (pl.Float64), and `overnight_return` (pl.Float64).
+  - **Validation**: Ensure no null divisions occur during return calculations.
+  - **Consumers/Producers**: Produced by `feature_engine`, consumed by `parquet_duckdb`.
 
 ## Implementation Approach
 
@@ -88,12 +91,12 @@ Backward compatibility is maintained by ensuring `TransformedQuote` is an additi
     - Wrap the HTTP requests (using `requests` or `httpx`) with a robust retry mechanism (e.g., using `tenacity`) to handle 429 Rate Limit or 50x errors.
 4.  **Feature Transformation Engine**:
     - Implement `src/transformation/feature_engine.py`.
-    - Accept the list of `RawQuote` objects and convert them into a Polars DataFrame for high-speed manipulation.
-    - Use Polars expressions to calculate the required fields: `day_of_week`, `is_month_start`, `is_month_end`, `daily_return`, `intraday_return`, and `overnight_return`.
-    - Convert the resulting DataFrame rows back into `TransformedQuote` Pydantic models or maintain it as a validated DataFrame for the storage layer.
+    - Accept the list of `RawQuote` objects and immediately convert them into a Polars DataFrame for high-speed manipulation.
+    - Use native Polars expressions to calculate the required fields: `day_of_week`, `is_month_start`, `is_month_end`, `daily_return`, `intraday_return`, and `overnight_return`.
+    - Strictly maintain and return the validated Polars DataFrame. DO NOT convert the dataframe back into row-by-row Pydantic models.
 5.  **Storage Layer**:
     - Implement `src/storage/parquet_duckdb.py`.
-    - Provide a method to accept the Polars DataFrame (or list of `TransformedQuote`s) and save it to a local disk path (e.g., `data/processed_quotes.parquet`).
+    - Provide a method to accept the Polars DataFrame and save it directly to a local disk path (e.g., `data/processed_quotes.parquet`) using Polars' high-speed native parquet writer.
     - Provide a method to initialise a DuckDB connection and register the Parquet file, returning a queryable DuckDB connection object.
 
 ## Test Strategy

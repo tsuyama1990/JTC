@@ -86,10 +86,12 @@ The design relies heavily on strong typing and validation through Pydantic model
     └── UAT_AND_TUTORIAL.py
 ```
 
-**Core Domain Pydantic Models Structure:**
+**Core Domain Pydantic Models Structure & Boundary Validation:**
+To prevent performance bottlenecks during bulk processing, Pydantic is strictly reserved for interface boundaries (Configuration, API ingestion, and summary analytical outputs). High-volume internal transformations strictly utilize Polars DataFrames and Schemas.
+
 1.  **AppSettings (`src/config/settings.py`)**: Defines system configurations, including `JQUANTS_REFRESH_TOKEN` and logging levels.
-2.  **RawQuote (`src/domain/raw_quote.py`)**: Represents the exact JSON structure returned by the J-Quants API (Date, Open, High, Low, Close, Volume).
-3.  **TransformedQuote (`src/domain/transformed_quote.py`)**: Extends the concept of a quote by appending calculated fields. It inherits core attributes and adds `day_of_week` (int), `is_month_start` (bool), `is_month_end` (bool), `daily_return` (float), `intraday_return` (float), and `overnight_return` (float).
+2.  **RawQuote (`src/domain/raw_quote.py`)**: Validates the initial JSON payloads returned by the J-Quants API, ensuring schema correctness before conversion to a Polars DataFrame.
+3.  **Polars Transformed Schema (`src/transformation/feature_engine.py`)**: Replaces the concept of `TransformedQuote` Pydantic models. Once `RawQuote` data enters Polars, all subsequent features (`day_of_week`, `daily_return`, etc.) are validated via native Polars data types to ensure C-level execution speed prior to Parquet serialization.
 4.  **StatResult (`src/analysis/stats_tester.py`)**: Captures the results of the statistical test, including the T-statistic, P-value, and a boolean indicating significance.
 5.  **BacktestMetrics (`src/analysis/backtester.py`)**: Stores the final metrics from `vectorbt`, including `sharpe_ratio`, `win_rate`, `total_return`, and `max_drawdown`.
 
@@ -99,7 +101,7 @@ The design relies heavily on strong typing and validation through Pydantic model
 - **Focus:** Data Pipeline Construction (ETL & Storage).
 - **Features:**
   1. Setup of the core Pydantic configurations and environment variable management to securely load `JQUANTS_REFRESH_TOKEN`.
-  2. Implementation of the `jquants_client` module to authenticate with the J-Quants API and fetch 12 weeks of historical daily stock data. This will include sophisticated error handling and retry logic to gracefully manage rate limits or temporary API outages.
+  2. Implementation of the `jquants_client` module to authenticate with the J-Quants API and fetch 12 weeks of historical daily stock data. This will strictly include exponential backoff and retry logic (e.g., using `tenacity`) to gracefully manage HTTP 429 Rate Limits and intermittent API outages inherent to free-tier connections.
   3. Development of the `feature_engine` using Polars to ingest the raw J-Quants data and generate critical features: day of the week flag (1-5), month start/end flags, and various return metrics (daily, intraday, overnight).
   4. Construction of the `parquet_duckdb` storage module to save the resulting Polars DataFrames as Parquet files to the local disk and instantiate a DuckDB connection for subsequent querying.
 
