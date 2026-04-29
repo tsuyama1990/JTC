@@ -4,3 +4,5 @@
 .nitpick/project_state_local.json
 dev_documents/project_state.json
 dev_documents/project_state_local.json
+logs/
+.nitpick/worktrees/
