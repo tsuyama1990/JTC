@@ -42,8 +42,10 @@ class JQuantsClient:
     def get_id_token(self) -> str:
         url = f"{self.base_url}/token/auth_refresh"
         try:
-            response = self._post_with_retry(url, params={"refresh_token": self.refresh_token})
-            if response.status_code in {401, 403}:
+            # J-Quants API expects 'refreshtoken' instead of 'refresh_token' per testing
+            response = self._post_with_retry(url, params={"refreshtoken": self.refresh_token})
+            # Also catch 400 Bad Request which is what it returns for invalid refresh token
+            if response.status_code in {400, 401, 403}:
                 response.raise_for_status()
         except httpx.HTTPStatusError as e:
             msg = f"Failed to authenticate with J-Quants API: {e}"

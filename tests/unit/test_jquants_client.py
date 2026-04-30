@@ -21,7 +21,7 @@ def test_jquants_client_fetch_id_token_success(mocker: MockerFixture) -> None:
     assert token == "fake_id_token"  # noqa: S105
     mock_post.assert_called_once_with(
         "https://api.jquants.com/v1/token/auth_refresh",
-        params={"refresh_token": "fake_refresh_token"},
+        params={"refreshtoken": "fake_refresh_token"},
     )
 
 

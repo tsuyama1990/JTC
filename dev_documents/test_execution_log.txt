@@ -23,17 +23,17 @@ src/__init__.py                            0      0   100%
 src/core/__init__.py                       0      0   100%
 src/core/exceptions.py                     1      0   100%
 src/domain_models/__init__.py              3      0   100%
-src/domain_models/config.py                4      0   100%
+src/domain_models/config.py                5      0   100%
 src/domain_models/quote.py                30      0   100%
 src/ingestion/__init__.py                  0      0   100%
-src/ingestion/jquants_client.py           74     17    77%   27, 51-53, 58-59, 67, 84-87, 91-93, 110-112
+src/ingestion/jquants_client.py           74     17    77%   27, 53-55, 60-61, 67, 84-87, 91-93, 110-112
 src/processing/__init__.py                 0      0   100%
 src/processing/transformers.py             9      0   100%
 src/storage/__init__.py                    0      0   100%
 src/storage/repository.py                 16      0   100%
 tests/__init__.py                          0      0   100%
 tests/e2e/__init__.py                      0      0   100%
-tests/e2e/test_live_ingestion.py          22     11    50%   17-37
+tests/e2e/test_live_ingestion.py          28     16    43%   18-46
 tests/integration/__init__.py              0      0   100%
 tests/integration/test_repository.py      13      0   100%
 tests/uat/__init__.py                      0      0   100%
@@ -44,5 +44,5 @@ tests/unit/test_domain_models.py          27      0   100%
 tests/unit/test_jquants_client.py         52      0   100%
 tests/unit/test_transformers.py           31      0   100%
 --------------------------------------------------------------------
-TOTAL                                    333     28    92%
-======================== 18 passed, 1 skipped in 18.51s ========================
+TOTAL                                    340     33    90%
+======================== 18 passed, 1 skipped in 17.46s ========================
