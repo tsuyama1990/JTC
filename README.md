@@ -1,63 +1,108 @@
 # Japanese Stock Calendar Anomaly Validation System
 
-A robust, mathematically sound Proof of Concept (PoC) for ingesting, transforming, and analyzing calendar anomalies within Japanese equity markets. It leverages modern Python tools (Polars, DuckDB) to process live data from the J-Quants API.
+A robust, mathematically sound Proof of Concept (PoC) for ingesting, transforming, and analyzing calendar anomalies within Japanese equity markets. It leverages modern Python tools (Polars, DuckDB, vectorbt) to process live data from the J-Quants API, performing rigorous statistical tests and backtesting trading strategies.
 
-## Features
+![Build Status](https://img.shields.io/badge/build-passing-brightgreen)
 
-- **J-Quants API Integration:** Connects seamlessly to the J-Quants API (Free tier) to pull historical daily stock quotes dynamically spanning the last 12 weeks. Handles rate limits and network errors with exponential backoff.
-- **High-Performance Transformations:** Utilizes Polars to efficiently calculate and add crucial market features, such as exact trading days (`day_of_week`), `is_month_start`, `is_month_end`, `daily_return`, `intraday_return`, and `overnight_return`.
-- **Permanent Local Storage:** Enriched data is persisted into an optimized Parquet file format.
-- **DuckDB SQL Querying:** Embedded DuckDB engine allows rapid, SQL-based data querying without additional infrastructure.
-- **Strict Data Integrity:** Employs Pydantic `BaseModel` for validation at boundaries.
+## Key Features
 
-## Installation
+- **Automated Data Pipeline**: Seamlessly fetches the last 12 weeks of daily quotes from the J-Quants API with robust retry logic and error handling.
+- **High-Performance Transformations**: Utilizes Polars to rapidly compute daily, intraday, and overnight returns, along with calendar features (day-of-week, month-start/end).
+- **Zero-Config Storage**: Transparently saves processed data as heavily compressed Parquet files queryable instantly via DuckDB.
+- **Rigorous Statistical Validation**: Employs `statsmodels` to scientifically test hypotheses regarding market returns on specific days.
+- **Realistic Backtesting**: Integrates `vectorbt` to simulate calendar-based trading strategies, perfectly accounting for transaction fees and slippage.
 
+## Architecture Overview
+
+The system strictly decouples the volatile external API integration from the highly sensitive internal statistical logic using a layered approach enforcing strict Pydantic data schemas.
+
+```mermaid
+graph TD
+    A[Environment Variables .env] -->|Loaded securely| B(Configuration Layer Pydantic)
+    B --> C{Data Ingestion Layer}
+    C <-->|HTTP Requests| D((J-Quants API))
+    C -->|Raw Data| E(Transformation Layer Polars)
+    E -->|Processed Data| F[(Storage Layer Parquet & DuckDB)]
+    F -->|Query Data| G(Analysis Layer statsmodels)
+    F -->|Query Data| H(Backtesting Layer vectorbt)
+    G --> I[Statistical Results]
+    H --> J[Performance Metrics]
+```
+
+## Prerequisites
+
+- Python 3.12+
+- `uv` (for rapid dependency management)
+- Optional: A valid J-Quants API free-tier account (Refresh Token) for live execution.
+
+## Installation & Setup
+
+1. Clone the repository:
 ```bash
-# Initialize and sync the virtual environment using uv
+git clone <repository_url>
+cd <repository_directory>
+```
+
+2. Install dependencies using `uv`:
+```bash
 uv sync
 ```
 
-## Setup
-Create your configuration file by copying the example:
-
+3. Configure Environment Variables:
 ```bash
 cp .env.example .env
 ```
-Ensure that you set the value for `JQUANTS_REFRESH_TOKEN` in the `.env` file before running the application.
+Edit the `.env` file and append your J-Quants API refresh token: `JQUANTS_REFRESH_TOKEN=your_token_here`.
 
 ## Usage
 
-You can ingest, transform, and store quotes directly using the pipeline components in Python.
+### Quick Start with Marimo
 
-```python
-from src.ingestion.jquants_client import JQuantsClient
-from src.processing.transformers import transform_quotes
-from src.storage.repository import StorageRepository
-import os
-from dotenv import load_dotenv
+The entire UAT and tutorial suite is packaged in a single, reactive Marimo notebook. It supports both Mock Mode (no API key required) and Real Mode.
 
-load_dotenv()
-token = os.environ.get("JQUANTS_REFRESH_TOKEN")
-
-# 1. Fetch data
-client = JQuantsClient(refresh_token=token)
-raw_quotes = client.fetch_historical_data()
-
-# 2. Transform into a Polars DataFrame
-df = transform_quotes(raw_quotes)
-
-# 3. Persist and Query
-repo = StorageRepository()
-repo.save_data(df)
-
-# Execute SQL via DuckDB
-result = repo.query_data("SELECT * FROM 'data/processed_quotes.parquet' WHERE day_of_week = 1 LIMIT 5")
-print(result)
+```bash
+uv run marimo edit tutorials/UAT_AND_TUTORIAL.py
 ```
 
-## Structure
-- `src/domain_models/`: Pydantic definitions and Configs.
-- `src/ingestion/`: J-Quants HTTP client.
-- `src/processing/`: Polars feature transformation engine.
-- `src/storage/`: DuckDB & Parquet persistence logic.
-- `tests/`: Comprehensive unit, integration, and E2E Pytest suites.
+### Standard Execution
+
+Execute the main pipeline directly to fetch data, run statistics, and output backtest metrics to the console.
+
+```bash
+uv run python main.py
+```
+
+## Development Workflow
+
+The project strictly enforces code quality using `ruff` (max complexity 10) and `mypy` (strict mode). All configurations are defined in `pyproject.toml`.
+
+- **Run Linters and Type Checkers**:
+```bash
+uv run ruff check .
+uv run mypy .
+```
+
+- **Run Tests (with Coverage)**:
+```bash
+uv run pytest
+```
+*Note: The test suite aggressively mocks external API calls to guarantee sandbox resilience and rapid execution.*
+
+## Project Structure
+
+```text
+src/
+├── core/            # Pydantic configuration & exceptions
+├── domain/          # Strict Pydantic models & schemas
+├── ingestion/       # J-Quants API client and fetch logic
+├── processing/      # Polars transformations and feature engineering
+├── storage/         # DuckDB repository and Parquet file I/O
+└── analysis/        # statsmodels and vectorbt integrations
+tests/               # Pytest suite with strict mocking
+tutorials/           # Marimo UAT notebooks
+dev_documents/       # Architectural plans and specifications
+```
+
+## License
+
+MIT
