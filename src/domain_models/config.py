@@ -13,4 +13,4 @@ class AppSettings(BaseSettings):
 # Create a global settings instance to be imported by other modules
 # (In tests, this might fail if the env var isn't set, so we can initialize it lazily or catch it, but pydantic-settings handles it if it's in env).
 def get_settings() -> AppSettings:
-    return AppSettings() # type: ignore[call-arg]
+    return AppSettings()  # type: ignore[call-arg]

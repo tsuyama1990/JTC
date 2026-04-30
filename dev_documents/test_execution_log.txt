@@ -34,9 +34,9 @@ src/core/exceptions.py                1      0   100%
 src/domain_models/__init__.py         3      0   100%
 src/domain_models/config.py           6      1    83%   16
 src/domain_models/quotes.py          36      2    94%   30, 33
-src/ingestion/jquants_client.py      58      7    88%   28-31, 97-99
+src/ingestion/jquants_client.py      58      7    88%   29-32, 100-102
 src/processing/transformers.py       13      3    77%   13-29
-src/storage/repository.py            22      5    77%   30-31, 37-39
+src/storage/repository.py            22      5    77%   31-32, 38-40
 ---------------------------------------------------------------
 TOTAL                               139     18    87%
-======================== 16 passed, 1 skipped in 1.30s =========================
+======================== 16 passed, 1 skipped in 1.38s =========================

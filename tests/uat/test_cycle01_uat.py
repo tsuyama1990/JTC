@@ -13,5 +13,6 @@ def test_scenario1_authentication_missing_token(monkeypatch):
     AND system must terminate gracefully without making requests.
     """
     monkeypatch.delenv("JQUANTS_REFRESH_TOKEN", raising=False)
+    monkeypatch.setitem(AppSettings.model_config, "env_file", None)
     with pytest.raises(ValidationError):
         AppSettings()

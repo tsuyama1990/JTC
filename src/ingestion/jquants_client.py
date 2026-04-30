@@ -9,6 +9,7 @@ from src.domain_models.quotes import RawQuote
 
 logger = logging.getLogger(__name__)
 
+
 class JQuantsClient:
     """Client for fetching data from the J-Quants API."""
 
@@ -37,18 +38,20 @@ class JQuantsClient:
         stop=stop_after_attempt(5),
         wait=wait_exponential(multiplier=1, min=2, max=30),
         retry=retry_if_exception_type(httpx.HTTPStatusError),
-        reraise=True
+        reraise=True,
     )
-    def _fetch_quotes_with_retry(self, url: str, headers: dict[str, str], params: dict[str, str]) -> dict[str, list[dict[str, str | int | float]]]:
+    def _fetch_quotes_with_retry(
+        self, url: str, headers: dict[str, str], params: dict[str, str]
+    ) -> dict[str, list[dict[str, str | int | float]]]:
         """Fetches data with exponential backoff on HTTP 429 and 5xx errors."""
         response = httpx.get(url, headers=headers, params=params)
 
         # Raise an exception for bad status codes to trigger retry
         if response.status_code >= 400:
-             logger.warning(f"HTTP {response.status_code} received. Retrying...")
-             response.raise_for_status()
+            logger.warning(f"HTTP {response.status_code} received. Retrying...")
+            response.raise_for_status()
 
-        return response.json() # type: ignore[no-any-return]
+        return response.json()  # type: ignore[no-any-return]
 
     def fetch_historical_data(self) -> list[RawQuote]:
         """Fetches daily quotes for the last 12 weeks."""
@@ -91,7 +94,7 @@ class JQuantsClient:
                     high=float(item["High"]),
                     low=float(item["Low"]),
                     close=float(item["Close"]),
-                    volume=int(item["Volume"])
+                    volume=int(item["Volume"]),
                 )
                 quotes.append(quote)
             except (ValueError, KeyError, TypeError) as e:

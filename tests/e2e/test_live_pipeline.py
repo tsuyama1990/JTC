@@ -14,8 +14,14 @@ def test_live_pipeline_e2e(tmp_path: Path):
     End-to-End Live API Pipeline Test.
     """
     token = os.environ.get("JQUANTS_REFRESH_TOKEN")
-    if not token or token == "" or "Target Project Secrets" in token:
-        pytest.skip("Skipping live test because JQUANTS_REFRESH_TOKEN is not set.")
+    if (
+        not token
+        or token == ""
+        or "Target Project Secrets" in token
+        or "dummy" in token
+        or token == "AAAAAAAAAAAAAAAAAAAAAAA"
+    ):
+        pytest.skip("Skipping live test because JQUANTS_REFRESH_TOKEN is not valid.")
 
     # 1. Ingestion
     client = JQuantsClient(refresh_token=token)

@@ -13,11 +13,13 @@ def test_save_and_query_parquet(tmp_path: Path):
     repo = StorageRepository(storage_path=str(parquet_path))
 
     # Synthetic DataFrame matching ProcessedQuote roughly
-    df = pl.DataFrame({
-        "date": ["2023-01-01", "2023-01-02", "2023-01-03"],
-        "day_of_week": [1, 2, 3],
-        "close": [100.0, 105.0, 102.0],
-    })
+    df = pl.DataFrame(
+        {
+            "date": ["2023-01-01", "2023-01-02", "2023-01-03"],
+            "day_of_week": [1, 2, 3],
+            "close": [100.0, 105.0, 102.0],
+        }
+    )
 
     # Save data
     repo.save_data(df)
