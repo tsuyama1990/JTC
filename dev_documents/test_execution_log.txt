@@ -1,17 +1,29 @@
 ============================= test session starts ==============================
-platform linux -- Python 3.12.13, pytest-9.0.3, pluggy-1.6.0
+platform linux -- Python 3.12.13, pytest-9.0.3, pluggy-1.6.0 -- /app/.venv/bin/python
+cachedir: .pytest_cache
 rootdir: /app
 configfile: pyproject.toml
 testpaths: tests
 plugins: mock-3.15.1, cov-7.1.0, anyio-4.13.0
-collected 17 items
+collecting ... collected 17 items
 
-tests/e2e/test_live_pipeline.py s                                        [  5%]
-tests/uat/test_cycle01_uat.py .                                          [ 11%]
-tests/unit/test_jquants_client.py ....                                   [ 35%]
-tests/unit/test_quotes.py ........                                       [ 82%]
-tests/unit/test_repository.py .                                          [ 88%]
-tests/unit/test_transformers.py ..                                       [100%]
+tests/e2e/test_live_pipeline.py::test_live_pipeline_e2e SKIPPED (Ski...) [  5%]
+tests/uat/test_cycle01_uat.py::test_scenario1_authentication_missing_token PASSED [ 11%]
+tests/unit/test_jquants_client.py::test_jquants_client_auth_success PASSED [ 17%]
+tests/unit/test_jquants_client.py::test_jquants_client_fetch_historical_data_success PASSED [ 23%]
+tests/unit/test_jquants_client.py::test_jquants_client_retry_on_429_then_success PASSED [ 29%]
+tests/unit/test_jquants_client.py::test_jquants_client_catastrophic_failure PASSED [ 35%]
+tests/unit/test_quotes.py::test_raw_quote_valid PASSED                   [ 41%]
+tests/unit/test_quotes.py::test_raw_quote_invalid_high_less_than_low PASSED [ 47%]
+tests/unit/test_quotes.py::test_raw_quote_invalid_high_less_than_open PASSED [ 52%]
+tests/unit/test_quotes.py::test_raw_quote_invalid_low_greater_than_close PASSED [ 58%]
+tests/unit/test_quotes.py::test_processed_quote_valid PASSED             [ 64%]
+tests/unit/test_quotes.py::test_processed_quote_invalid_day_of_week PASSED [ 70%]
+tests/unit/test_quotes.py::test_app_settings_missing_token PASSED        [ 76%]
+tests/unit/test_quotes.py::test_app_settings_valid_token PASSED          [ 82%]
+tests/unit/test_repository.py::test_save_and_query_parquet PASSED        [ 88%]
+tests/unit/test_transformers.py::test_transform_quotes_success PASSED    [ 94%]
+tests/unit/test_transformers.py::test_transform_quotes_validation_failure PASSED [100%]
 
 ================================ tests coverage ================================
 _______________ coverage: platform linux, python 3.12.13-final-0 _______________
@@ -27,6 +39,4 @@ src/processing/transformers.py       13      3    77%   13-29
 src/storage/repository.py            22      5    77%   30-31, 37-39
 ---------------------------------------------------------------
 TOTAL                               139     18    87%
-======================== 16 passed, 1 skipped in 1.36s =========================
-/app/.venv/lib/python3.12/site-packages/coverage/inorout.py:561: CoverageWarning: Module dev_src was never imported. (module-not-imported); see https://coverage.readthedocs.io/en/7.13.5/messages.html#warning-module-not-imported
-  self.warn(f"Module {pkg} was never imported.", slug="module-not-imported")
+======================== 16 passed, 1 skipped in 1.30s =========================
