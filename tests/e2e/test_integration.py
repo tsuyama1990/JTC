@@ -1,3 +1,4 @@
+from typing import Any
 from unittest.mock import patch
 
 import numpy as np
@@ -7,10 +8,7 @@ from src.analysis.backtest import run_backtest
 from src.analysis.statistics import evaluate_day_anomaly
 from src.domain_models.backtest import BacktestMetrics
 from src.domain_models.statistics import StatResult
-from src.storage.repository import get_historical_data
 
-
-from typing import Any
 
 @patch("src.storage.repository.get_historical_data")
 def test_full_pipeline_integration(mock_get_data: Any) -> None:
@@ -35,6 +33,7 @@ def test_full_pipeline_integration(mock_get_data: Any) -> None:
 
     # 2. Pipeline execution
     import src.storage.repository
+
     df = src.storage.repository.get_historical_data()
 
     # 3. Statistical testing

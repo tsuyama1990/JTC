@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
-from src.analysis.statistics import evaluate_day_anomaly
 
+from src.analysis.statistics import evaluate_day_anomaly
 from src.domain_models.statistics import StatResult
 
 

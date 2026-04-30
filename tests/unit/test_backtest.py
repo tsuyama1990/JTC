@@ -1,7 +1,7 @@
 import polars as pl
 import pytest
-from src.analysis.backtest import BacktestCalculationError, run_backtest
 
+from src.analysis.backtest import BacktestCalculationError, run_backtest
 from src.domain_models.backtest import BacktestMetrics
 
 
