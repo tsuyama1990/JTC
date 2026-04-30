@@ -25,8 +25,9 @@ class QuoteRepository:
         # Connect to an in-memory DuckDB instance
         con = duckdb.connect(database=':memory:')
 
-        # We can create a view to make querying easier
-        con.execute(f"CREATE VIEW processed_quotes AS SELECT * FROM read_parquet('{self.file_path}')") # noqa: S608
+        # Safely register the parquet file as a view using duckdb's read_parquet
+        rel = con.read_parquet(str(self.file_path))
+        rel.create_view("processed_quotes")
 
         # Execute query and convert directly to Polars
         return con.execute(query).pl()

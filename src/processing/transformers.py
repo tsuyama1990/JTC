@@ -1,5 +1,5 @@
-
 import polars as pl
+from pydantic import ValidationError
 
 from src.domain_models.quote import ProcessedQuote, RawQuote
 
@@ -29,14 +29,11 @@ def transform_quotes(quotes: list[RawQuote]) -> pl.DataFrame:
         ((pl.col("open") - pl.col("close").shift(1)) / pl.col("close").shift(1)).alias("overnight_return")
     )
 
+    # Use actual date logic for month end: next calendar day has a different month
     df = df.with_columns(
         pl.col("date").dt.weekday().alias("day_of_week"),
         (pl.col("date").dt.day() == 1).alias("is_month_start"),
-        (pl.col("date").dt.month() != pl.col("date").dt.month().shift(-1)).alias("is_month_end")
-    )
-
-    df = df.with_columns(
-        pl.col("is_month_end").fill_null(False)
+        (pl.col("date").dt.month() != (pl.col("date") + pl.duration(days=1)).dt.month()).alias("is_month_end")
     )
 
     df = df.with_columns(
@@ -44,7 +41,17 @@ def transform_quotes(quotes: list[RawQuote]) -> pl.DataFrame:
         pl.col("overnight_return").fill_null(0.0)
     )
 
+    # Explicit validation
     dicts = df.to_dicts()
-    _ = [ProcessedQuote(**d) for d in dicts]
+    validated_data = []
+    for d in dicts:
+        try:
+            pq = ProcessedQuote(**d)
+            validated_data.append(pq.model_dump())
+        except ValidationError as e:
+            # We strictly enforce validation. If one fails, the whole pipeline should raise
+            err_msg = f"Validation failed for ProcessedQuote: {e}"
+            raise ValueError(err_msg) from e
 
-    return df
+    # Return a dataframe built from validated data to ensure exact types
+    return pl.DataFrame(validated_data)
