@@ -1,5 +1,42 @@
-# AC-CDD Configuration
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual environments
 .env
+.env.local
+.venv
+venv/
+ENV/
+
+# Tools
+.coverage
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# OS Files
+.DS_Store
+
+# AC-CDD Configuration
 .nitpick/
 .nitpick/project_state_local.json
 dev_documents/project_state.json

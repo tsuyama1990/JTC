@@ -72,6 +72,34 @@ Execute the main pipeline directly to fetch data, run statistics, and output bac
 uv run python main.py
 ```
 
+### Python Snippet: Statistical Evaluation and Backtesting
+
+You can also use the analytical components directly in your own scripts:
+
+```python
+import polars as pl
+from src.analysis.statistics import evaluate_day_anomaly
+from src.analysis.backtest import run_backtest
+
+# Load your historical data into a Polars DataFrame
+df = pl.DataFrame({
+    "close": [100.0, 105.0, 102.0, 110.0, 115.0],
+    "return": [0.0, 0.05, -0.028, 0.078, 0.045],
+    "day_of_week": [1, 2, 3, 4, 5]
+})
+
+# 1. Statistical Evaluation (e.g., testing Monday anomalies)
+stat_result = evaluate_day_anomaly(df.to_pandas(), target_day=1)
+print(f"Is Monday Significant? {stat_result.is_significant} (p-value: {stat_result.p_value})")
+
+# 2. Algorithmic Backtesting
+if stat_result.is_significant:
+    # Buy on Friday, Sell on Monday
+    metrics = run_backtest(df, entry_day=5, exit_day=1, initial_cash=1000000.0, fees=0.001)
+    print(f"Total Return: {metrics.total_return}%")
+    print(f"Sharpe Ratio: {metrics.sharpe_ratio}")
+```
+
 ## Development Workflow
 
 The project strictly enforces code quality using `ruff` (max complexity 10) and `mypy` (strict mode). All configurations are defined in `pyproject.toml`.
