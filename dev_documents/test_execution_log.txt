@@ -27,6 +27,4 @@ src/processing/transformers.py       18      0   100%
 src/storage/repository.py            16      0   100%
 ---------------------------------------------------------------
 TOTAL                               138     16    88%
-============================= 19 passed in 27.30s ==============================
-/app/.venv/lib/python3.12/site-packages/coverage/inorout.py:561: CoverageWarning: Module dev_src was never imported. (module-not-imported); see https://coverage.readthedocs.io/en/7.13.5/messages.html#warning-module-not-imported
-  self.warn(f"Module {pkg} was never imported.", slug="module-not-imported")
+============================= 19 passed in 27.37s ==============================
