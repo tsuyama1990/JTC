@@ -14,6 +14,7 @@ from src.storage.repository import QuoteRepository
 
 def test_scenario_1_no_token_fails_fast(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.delenv("JQUANTS_REFRESH_TOKEN", raising=False)
+    monkeypatch.setattr("pydantic_settings.BaseSettings._settings_build_values", lambda *args, **kwargs: {})
     with pytest.raises(ValidationError, match="JQUANTS_REFRESH_TOKEN"):
         AppSettings() # type: ignore[call-arg]
 
