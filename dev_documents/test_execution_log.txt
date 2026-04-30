@@ -1,28 +1,29 @@
 ============================= test session starts ==============================
-platform linux -- Python 3.14.3, pytest-9.0.2, pluggy-1.6.0
+platform linux -- Python 3.12.13, pytest-9.0.3, pluggy-1.6.0
 rootdir: /app
 configfile: pyproject.toml
 testpaths: tests
 plugins: mock-3.15.1, cov-7.1.0
-collected 11 items
+collected 8 items
 
-tests/test_analysis.py .........                                         [ 81%]
-tests/test_config.py ..                                                  [100%]
+tests/e2e/test_jquants_client.py ..                                      [ 25%]
+tests/e2e/test_repository.py .                                           [ 37%]
+tests/unit/test_domain_models.py ....                                    [ 87%]
+tests/unit/test_transformers.py .                                        [100%]
 
 ================================ tests coverage ================================
-_______________ coverage: platform linux, python 3.14.3-final-0 ________________
+_______________ coverage: platform linux, python 3.12.13-final-0 _______________
 
-Name                       Stmts   Miss  Cover   Missing
---------------------------------------------------------
-src/__init__.py                0      0   100%
-src/analysis/__init__.py       3      0   100%
-src/analysis/backtest.py      23      0   100%
-src/analysis/stats.py         21      0   100%
-src/config.py                 10      0   100%
-src/domain/__init__.py         2      0   100%
-src/domain/analysis.py         5      0   100%
-src/domain/features.py         0      0   100%
-src/domain/jquants.py          0      0   100%
---------------------------------------------------------
-TOTAL                         64      0   100%
-============================= 11 passed in 14.33s ==============================
+Name                            Stmts   Miss  Cover   Missing
+-------------------------------------------------------------
+src/domain_models/__init__.py       3      0   100%
+src/domain_models/config.py         4      0   100%
+src/domain_models/quotes.py        23      0   100%
+src/jquants_client.py              36      0   100%
+src/repository.py                  13      0   100%
+src/transformers.py                10      1    90%   8
+-------------------------------------------------------------
+TOTAL                              89      1    99%
+============================== 8 passed in 16.73s ==============================
+/app/.venv/lib/python3.12/site-packages/coverage/inorout.py:561: CoverageWarning: Module dev_src was never imported. (module-not-imported); see https://coverage.readthedocs.io/en/7.13.5/messages.html#warning-module-not-imported
+  self.warn(f"Module {pkg} was never imported.", slug="module-not-imported")
