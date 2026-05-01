@@ -93,7 +93,7 @@ uv run pytest
 ```text
 src/
 ├── core/            # Pydantic configuration & exceptions
-├── domain/          # Strict Pydantic models & schemas
+├── domain_models/   # Strict Pydantic models & schemas
 ├── ingestion/       # J-Quants API client and fetch logic
 ├── processing/      # Polars transformations and feature engineering
 ├── storage/         # DuckDB repository and Parquet file I/O

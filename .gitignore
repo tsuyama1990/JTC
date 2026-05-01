@@ -6,3 +6,17 @@ dev_documents/project_state.json
 dev_documents/project_state_local.json
 logs/
 .nitpick/worktrees/
+__pycache__/
+*.pyc
+.coverage
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+*.egg-info/
+.env
+.env.local
+.nitpick/
+.venv/
+venv/
+env/
+.DS_Store
