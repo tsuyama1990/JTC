@@ -17,11 +17,13 @@ _______________ coverage: platform linux, python 3.12.13-final-0 _______________
 Name                              Stmts   Miss  Cover   Missing
 ---------------------------------------------------------------
 src/analysis/__init__.py              0      0   100%
-src/analysis/backtest.py             24      5    79%   47, 49, 51, 53, 55
+src/analysis/backtest.py             25      5    80%   52, 54, 56, 58, 60
 src/analysis/statistics.py           20      4    80%   15, 21, 32-33
+src/core/__init__.py                  0      0   100%
+src/core/config.py                    7      0   100%
 src/domain_models/__init__.py         3      0   100%
 src/domain_models/backtest.py        22      0   100%
 src/domain_models/statistics.py      14      0   100%
 ---------------------------------------------------------------
-TOTAL                                83      9    89%
-============================= 14 passed in 21.21s ==============================
+TOTAL                                91      9    90%
+============================= 14 passed in 21.08s ==============================

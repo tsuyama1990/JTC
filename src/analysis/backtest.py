@@ -2,11 +2,15 @@ import numpy as np
 import pandas as pd
 import vectorbt as vbt
 
+from src.core.config import settings
 from src.domain_models import BacktestMetrics
 
 
 def run_backtest(
-    df: pd.DataFrame, fee: float = 0.001, initial_cash: float = 1_000_000.0
+    df: pd.DataFrame,
+    fee: float = settings.DEFAULT_FEE,
+    slippage: float = settings.DEFAULT_SLIPPAGE,
+    initial_cash: float = settings.DEFAULT_INITIAL_CASH,
 ) -> BacktestMetrics:
     """
     Runs a vectorbt backtest given a DataFrame with 'Close', 'entries', and 'exits' columns.
@@ -29,6 +33,7 @@ def run_backtest(
         entries=df["entries"],
         exits=df["exits"],
         fees=fee,
+        slippage=slippage,
         init_cash=initial_cash,
         freq="1D",  # Assuming daily data for annualization
     )
@@ -58,8 +63,6 @@ def run_backtest(
         total_return=total_return * 100,
         annualized_return=annualized_return * 100,
         max_drawdown=max_drawdown * 100,
-        win_rate=win_rate * 100
-        if win_rate <= 1.0
-        else win_rate,  # win_rate from vectorbt is a ratio 0-1
+        win_rate=win_rate * 100,
         sharpe_ratio=sharpe_ratio,
     )

@@ -1,6 +1,6 @@
 import numpy as np
 import pandas as pd
-from scipy import stats
+from statsmodels.stats.weightstats import ttest_ind
 
 from src.domain_models import StatResult
 
@@ -25,9 +25,9 @@ def evaluate_day_of_week_returns(df: pd.DataFrame, target_day: int = 0) -> StatR
         return StatResult(target_day=target_day, t_statistic=0.0, p_value=1.0, is_significant=False)
 
     # Perform Welch's t-test (robust to unequal variances)
-    t_stat, p_val = stats.ttest_ind(target_returns, other_returns, equal_var=False)
+    t_stat, p_val, _ = ttest_ind(target_returns, other_returns, usevar="unequal")
 
-    # Handle NaN values returned by scipy in extreme edge cases
+    # Handle NaN values returned by statsmodels in extreme edge cases
     if np.isnan(t_stat) or np.isnan(p_val):
         t_stat = 0.0
         p_val = 1.0
