@@ -1,28 +1,27 @@
 ============================= test session starts ==============================
-platform linux -- Python 3.14.3, pytest-9.0.2, pluggy-1.6.0
+platform linux -- Python 3.12.13, pytest-9.0.3, pluggy-1.6.0
 rootdir: /app
 configfile: pyproject.toml
 testpaths: tests
-plugins: mock-3.15.1, cov-7.1.0
-collected 11 items
+plugins: cov-7.1.0
+collected 14 items
 
-tests/test_analysis.py .........                                         [ 81%]
-tests/test_config.py ..                                                  [100%]
+tests/uat/test_cycle02_uat.py ..                                         [ 14%]
+tests/unit/test_backtest.py ..                                           [ 28%]
+tests/unit/test_schemas.py .......                                       [ 78%]
+tests/unit/test_statistics.py ...                                        [100%]
 
 ================================ tests coverage ================================
-_______________ coverage: platform linux, python 3.14.3-final-0 ________________
+_______________ coverage: platform linux, python 3.12.13-final-0 _______________
 
-Name                       Stmts   Miss  Cover   Missing
---------------------------------------------------------
-src/__init__.py                0      0   100%
-src/analysis/__init__.py       3      0   100%
-src/analysis/backtest.py      23      0   100%
-src/analysis/stats.py         21      0   100%
-src/config.py                 10      0   100%
-src/domain/__init__.py         2      0   100%
-src/domain/analysis.py         5      0   100%
-src/domain/features.py         0      0   100%
-src/domain/jquants.py          0      0   100%
---------------------------------------------------------
-TOTAL                         64      0   100%
-============================= 11 passed in 14.33s ==============================
+Name                              Stmts   Miss  Cover   Missing
+---------------------------------------------------------------
+src/analysis/__init__.py              0      0   100%
+src/analysis/backtest.py             24      5    79%   47, 49, 51, 53, 55
+src/analysis/statistics.py           20      4    80%   15, 21, 32-33
+src/domain_models/__init__.py         3      0   100%
+src/domain_models/backtest.py        22      0   100%
+src/domain_models/statistics.py      14      0   100%
+---------------------------------------------------------------
+TOTAL                                83      9    89%
+============================= 14 passed in 21.21s ==============================
