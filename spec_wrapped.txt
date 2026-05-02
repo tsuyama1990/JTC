@@ -1,0 +1,322 @@
+# CYCLE01 SPEC  ## Summary The primary objective of CYCLE01 is to strategically establish a highly
+robust, exceptionally reliable, and rigorously secure data pipeline exclusively dedicated to
+fetching, transforming, and persistently storing Japanese stock market data. This meticulously
+designed pipeline forms the absolute, unshakeable foundation of the entire complex Proof of Concept
+(PoC) aimed specifically at discovering and rigorously analysing calendar anomalies within financial
+time series. The development cycle is highly methodically broken down into three extremely distinct,
+highly cohesive, and tightly coupled phases: precise data ingestion, complex data transformation,
+and highly optimized data storage. We will proactively and directly integrate with the live J-Quants
+API (specifically targeting the Free tier to ensure widespread accessibility) to programmatically
+pull highly accurate historical daily price quotes continuously covering the critical period of the
+last twelve trading weeks. This freshly ingested raw financial data will then be rigorously and
+mathematically processed utilizing the phenomenally high-performance Polars data manipulation
+library. The core purpose of this processing phase is to accurately calculate the absolutely
+essential statistical features explicitly required for all subsequent rigorous statistical analysis
+and algorithmic backtesting phases. These meticulously calculated features specifically include
+explicit, integer-based day-of-week flags, precise boolean-based month-start and month-end
+indicators, and various critically important return metrics such as exact daily returns, precise
+intraday returns, and accurate overnight returns. Finally, the wonderfully enriched and completely
+processed dataset will be permanently persisted directly to the local file system using the
+phenomenally highly efficient, deeply compressed Parquet file format. To guarantee incredibly
+seamless and exceptionally fast access for all future complex queries and mathematical analysis,
+this pristine data will be made immediately and inherently queryable via a deeply integrated DuckDB
+engine. This specific development cycle prioritises, above all else, exceptional code quality,
+exceptionally strict adherence to robust Pydantic domain models to guarantee rigorous data
+validation at every single system boundary, and highly robust, highly resilient error handling
+mechanisms specifically designed to perfectly manage and gracefully recover from any transient
+network failures or unexpected timeouts when continuously communicating with unpredictable external
+web services. The ultimate, overarching goal is to absolutely ensure that the entire data pipeline
+operates flawlessly, autonomously extracting, meticulously cleaning, and securely storing the raw
+financial data with maximum computational efficiency and absolute, unquestionable data integrity. By
+successfully accomplishing this, we are fundamentally providing a perfectly clean, exceptionally
+reliable, and highly structured dataset that is absolutely critical for the complex algorithmic
+backtesting engine that will be systematically developed and rigorously tested in the subsequent
+analytical cycle. The undeniably successful completion of this incredibly important foundational
+cycle definitively guarantees that the entire software system can continuously, autonomously operate
+and flawlessly maintain an incredibly up-to-date, highly structured repository of critical market
+data, rendering it perfectly suited for advanced quantitative research and the scientifically
+rigorous validation of proposed calendar anomalies within the vibrant Japanese equity markets. We
+must mathematically ensure that this vital data layer is completely impenetrable to any malformed
+data, thereby definitively guaranteeing the absolute scientific validity of all future conclusions
+correctly drawn from this incredible system. This is a critical requirement for success.  ##
+Infrastructure & Dependencies A. Project Secrets (`.env.example`): - `JQUANTS_REFRESH_TOKEN` The
+Coder must append this to `.env.example` with the comment `# Target Project Secrets`.  B. System
+Configurations (`docker-compose.yml`): - No specific non-confidential environmental setups required
+in docker-compose for this cycle. If the system requires local storage paths to be explicitly
+mapped, the Coder must place these directly into the `environment:` section of the relevant service
+in `docker-compose.yml`, preserving valid YAML formatting and idempotency.  C. Sandbox Resilience
+(CRITICAL TEST STRATEGY): - **MANDATORY MOCKING:** All external API calls relying on the newly
+defined secrets in `.env.example` MUST be mocked in unit and integration tests (using
+`unittest.mock` or `pytest-mock`). The Sandbox will not possess the real API keys during the
+autonomous evaluation phase. If tests attempt real network calls to SaaS providers without valid
+`.env` values, the pipeline will fail and cause an infinite retry loop.  ## System Architecture This
+incredibly detailed section painstakingly outlines the exact file structure and the critically
+important roles of every single component that must be meticulously created or carefully modified
+during CYCLE01 to perfectly and completely fulfil the highly comprehensive ETL (Extract, Transform,
+Load) requirements of the project. The proposed architecture rigorously and uncompromisingly
+enforces a strict separation of concerns, fundamentally ensuring that the highly unpredictable
+external API integration is entirely, flawlessly, and beautifully decoupled from the highly
+controlled internal data transformation and highly optimized data storage mechanisms. This specific
+architectural pattern definitively guarantees a highly maintainable, deeply testable, and
+wonderfully extensible codebase, deliberately avoiding all the dangerous pitfalls of monolithic
+software design and the highly problematic creation of omnipotent "God Classes" that plague lesser
+systems.  ```text src/ ├── core/ │   ├── **config.py** │   └── **exceptions.py** ├── domain/ │   └──
+**models.py** ├── ingestion/ │   └── **jquants_client.py** ├── processing/ │   └──
+**transformers.py** └── storage/     └── **repository.py** ```  The system's complex data flow
+commences the exact millisecond the application is successfully initialized. The fundamental
+configuration module, securely located at `src/core/config.py`, is directly responsible for securely
+loading, carefully parsing, and perfectly managing all required environment variables. Specifically,
+it securely loads the absolutely critical `JQUANTS_REFRESH_TOKEN`. This specialized module utilizes
+Pydantic's powerful `BaseSettings` feature to rigorously enforce an incredibly strict configuration
+schema across the entire application runtime. It acts as the absolutely critical first line of
+defence, definitively ensuring the entire application gracefully fails incredibly fast and
+wonderfully informatively directly during the initial startup phase if the necessary cryptographic
+credentials are inexplicably missing or hopelessly malformed, rather than crashing wildly and
+unpredictably deep during runtime execution. Following highly successful configuration validation,
+absolute control is immediately passed to the `jquants_client.py` module residing safely within the
+carefully isolated ingestion layer. This highly specialized, narrowly focused module is exclusively
+and entirely responsible for perfectly managing all outbound HTTP requests directed exclusively to
+the external J-Quants API endpoint. It flawlessly orchestrates the highly necessary, surprisingly
+complex two-step authentication flow: it must first successfully exchange the long-lived refresh
+token to securely obtain a highly restricted, short-lived ID token, and subsequently utilize this
+critical ID token to strictly authorize all subsequent historical data retrieval requests. The
+intelligent client dynamically calculates the exact required date range, purposefully targeting
+exactly the most recent twelve trading weeks, to absolutely ensure the analytical data is always
+perfectly current. It then meticulously issues the precise API calls required to rapidly retrieve
+the massive daily stock quotes. The incredibly raw JSON responses received directly from the highly
+unpredictable external API are explicitly and forcefully prevented from ever leaking directly into
+the delicate internal processing pipeline. Instead, they are strictly parsed and rigorously,
+mathematically validated against the incredibly strict `RawQuote` Pydantic model perfectly defined
+in `src/domain/models.py`. This absolutely crucial validation step acts as an impenetrable,
+unbreakable barrier, completely crucial for decisively preventing malformed, highly unexpected, or
+totally corrupt external data from ever polluting the incredibly sensitive downstream analytical
+processes. Furthermore, the specialized ingestion client is heavily and deeply fortified with
+incredibly robust retry logic mechanisms. It expertly utilizes highly advanced libraries like
+`tenacity` to seamlessly implement complex exponential backoff strategies, absolutely ensuring it
+can handle annoying HTTP 429 (Rate Limit Exceeded) or catastrophic HTTP 5xx (Internal Server Error)
+responses incredibly gracefully, perfectly recovering from highly transient network anomalies
+without ever unexpectedly terminating the entire, highly critical pipeline process.  Once the
+massive amount of raw data is successfully retrieved, completely and fully authenticated, and
+strictly, mathematically validated, it is seamlessly and rapidly handed over directly to the highly
+optimized `transformers.py` module situated comfortably within the core processing layer. This
+specific module forms the incredibly powerful analytical engine of the entire ETL pipeline,
+exclusively and brilliantly leveraging the phenomenally high-performance Polars library to
+manipulate the massive financial datasets incredibly efficiently. It rapidly ingests the massive
+list of completely validated `RawQuote` objects, incredibly efficiently converts them into a
+massively powerful Polars DataFrame, and systematically applies an incredibly complex series of
+highly specialized functional mathematical transformations. These precise mathematical
+transformations include flawlessly calculating the incredibly critical daily return (the precise,
+mathematically verified percentage change in the closing price), the exact intraday return (the
+precise mathematical difference perfectly between the close price and the open price), and the exact
+overnight return (the precise mathematical difference perfectly between the exact open price and the
+previous day's verified close price). Furthermore, the highly specialized processing module
+meticulously and perfectly extracts absolutely essential categorical and strictly boolean features
+directly from the underlying date column. It systematically and accurately determines the explicit
+mathematical day of the week, mapping it perfectly and flawlessly to explicit integers (1
+definitively representing Monday, seamlessly extending through to 5 definitively representing
+Friday). It also accurately generates explicit boolean flags perfectly indicating whether a highly
+specific date exactly marks the exact start or the highly exact end of a specific trading month. The
+resulting, highly complex Polars DataFrame, now comprehensively and beautifully enriched with all
+these incredibly necessary analytical features, is rigorously subjected to a highly critical final
+validation check explicitly against the highly comprehensive `ProcessedQuote` schema (also perfectly
+and meticulously defined in `src/domain/models.py`). This absolute guarantee definitively proves
+that all incredibly complex calculations were performed perfectly and that absolutely no data types
+were unexpectedly or secretly altered during the highly complex transformation process.  The highly
+final architectural stage of the incredible CYCLE01 involves the crucial `repository.py` module,
+securely located deep within the storage layer. This highly vital component is explicitly
+responsible for the highly secure, permanent persistence of the fully processed and wonderfully
+enriched Polars DataFrame. It rapidly writes the massive data directly to the local file system
+utilizing the incredibly highly optimized, deeply compressed Parquet file format. Parquet was
+deliberately and highly specifically chosen for its exceptionally high compression ratios and
+incredibly, phenomenally fast read performance, particularly when complexly querying massive
+columnar data. Crucially, this advanced storage module deeply and fundamentally integrates DuckDB to
+seamlessly provide a highly robust, incredibly high-performance SQL-like interface exclusively for
+accessing the securely stored Parquet files. It expertly and beautifully exposes highly focused
+functions that seamlessly allow the encompassing application to query the incredibly massive
+underlying data with absolute maximum computational efficiency. For instance, it allows the complex
+system to incredibly easily filter the massive dataset for highly specific days of the exact week or
+highly specific, narrow date ranges strictly using standard, beautiful SQL syntax. This incredibly
+powerful architectural abstraction literally means that the rest of the complex analytical
+application (which will be meticulously and beautifully developed in the upcoming CYCLE02) can
+simply request the exact, highly specific data it desperately needs via simple SQL-like commands,
+remaining completely, blissfully agnostic to the highly complex underlying file format or the highly
+specific local storage location on the disk. The beautiful repository pattern perfectly and
+completely isolates the highly complex storage logic, definitively rendering the entire system
+incredibly highly modular, deeply testable, and highly easily extensible for all future needs. The
+incredibly powerful architectural combination of Polars for lightning-fast, highly parallelized in-
+memory processing and DuckDB operating brilliantly over Parquet for incredibly efficient storage and
+rapid querying perfectly provides a phenomenally performant and immensely highly scalable data
+pipeline foundation perfectly suited for this highly complex quantitative PoC. The incredibly strict
+system provides absolute, mathematically verifiable guarantees regarding total data integrity by
+relentlessly and forcefully enforcing incredibly strict Pydantic validations exactly at the very
+specific boundaries of every single architectural layer: precisely exactly when highly unpredictable
+data initially enters directly from the external API, and precisely exactly when it is subsequently
+and carefully passed from the internal processing layer directly into the permanent, secure storage
+layer. This exceptionally rigorous, highly defensive approach to system architecture is absolutely,
+unequivocally vital for the ultimate, absolute success and incredible mathematical validity of the
+subsequent complex calendar anomaly analysis. The meticulously and perfectly planned file structure
+perfectly reflects these incredibly strict architectural boundaries perfectly, absolutely ensuring
+crystal-clear, unmistakable distinctions definitively between core configuration management, highly
+precise domain model definitions, highly robust external data ingestion, incredibly fast internal
+data processing, and highly secure final data storage.  ## Design Architecture The foundational
+design architecture of CYCLE01 is fundamentally and irrevocably driven by the extensive use of
+Pydantic domain models. This approach ensures exceptionally strict data typing and uncompromising
+validation throughout the entire ETL data pipeline. This rigorous Domain-Driven approach
+categorically prevents the dangerous proliferation of implicit assumptions regarding data structures
+and guarantees, with absolute certainty, that the system always operates on known, perfectly valid
+data. All these core definitions are centrally and securely housed within the `src/domain/models.py`
+file.  The primary and most critical data entity is the `RawQuote` model. This specific Pydantic
+class precisely defines the exact expected structure of the raw data precisely as it is received
+from the external J-Quants API. It explicitly specifies the exact fields that are absolutely
+required—such as the specific `date`, the `open` price, the `high` price, the `low` price, the
+`close` price, and the trading `volume`—and it mercilessly enforces their precise data types (for
+example, ensuring unequivocally that all prices are represented as floating-point numbers and that
+the volume is always an integer). Crucially, this domain model implements sophisticated internal
+validation rules to guarantee absolute data integrity. For example, it utilizes custom field
+validators to enforce the inviolable invariant that the `high` price must always be greater than or
+equal to both the `low` price, the `open` price, and the `close` price. If the external API happens
+to return anomalous, corrupted, or logically impossible data that violates these fundamental rules,
+Pydantic will instantly raise a catastrophic validation error, effectively halting the process and
+absolutely preventing the corrupt data from ever entering the internal transformation pipeline. This
+model acts as the ultimate, strict, and uncompromising contract between the unpredictable external
+world and the highly controlled internal system.  Building directly upon the foundation of the raw
+data, the `ProcessedQuote` model defines the exact structural blueprint of the fully enriched data,
+precisely ready for complex statistical analysis. This model is carefully designed; it inherits
+directly from `RawQuote` (or strategically includes it as a core nested component) and explicitly
+adds entirely new fields for all the mathematically calculated features. These explicitly required
+fields include the `day_of_week` (which is strictly and mathematically constrained to be an integer
+precisely between 1 and 5), the `is_month_start` flag (strictly a boolean), the `is_month_end` flag
+(strictly a boolean), the `daily_return` metric (strictly a float), the `intraday_return` metric
+(strictly a float), and the `overnight_return` metric (strictly a float). By explicitly and
+rigorously defining this schema, we systematically establish an incredibly clear, unbreakable
+contract strictly between the processing layer (acting as the producer) and the storage/analysis
+layers (acting as the critical consumers). The consumers can rely with absolute mathematical
+certainty on the fact that any data they receive has definitively passed this extraordinarily strict
+validation process.  The fundamental configuration of the entire system is also strictly governed by
+Pydantic, specifically utilizing the `AppSettings` class meticulously defined in
+`src/core/config.py`. This model directly inherits from `pydantic_settings.BaseSettings` and
+explicitly and uncompromisingly declares all the absolutely required environment variables,
+specifically mandating the presence of the `JQUANTS_REFRESH_TOKEN`. This architectural decision
+ensures that the application robustly fails incredibly fast, during the very initial startup phase,
+if the necessary cryptographic credentials are not provided. This proactively prevents deeply
+confusing and difficult-to-debug runtime errors from occurring much later in the execution cycle.
+The design architecture, therefore, deliberately and systematically utilizes Pydantic not merely for
+simple data serialization, but as an incredibly comprehensive, robust, and unbreakable validation
+and contract-enforcement mechanism operating flawlessly across all critical architectural
+boundaries. This guarantees complete backward compatibility, meticulous versioning control, and
+ultimate, unwavering system stability.  ## Implementation Approach The detailed implementation of
+CYCLE01 will proceed highly methodically, beginning immediately with the core configuration and
+foundational domain models, sequentially moving to the external data ingestion, followed rapidly by
+the internal data processing, and culminating finally with the permanent data storage mechanism.  1.
+**Core Configuration and Robust Domain Models:** The very first step is to begin by precisely
+defining the `AppSettings` model within `src/core/config.py`, leveraging the power of
+`pydantic_settings`. This foundational model must strictly and absolutely require the
+`JQUANTS_REFRESH_TOKEN` string to be present in the environment. Following this, the developer must
+meticulously implement the core domain entities precisely within `src/domain/models.py`. They must
+explicitly define the `RawQuote` and the comprehensive `ProcessedQuote` Pydantic models. It is
+absolutely critical to ensure that these models include highly appropriate and strict type hinting
+alongside powerful internal validation logic (specifically utilizing decorators like
+`@field_validator`) to rigorously enforce critical market invariants, such as ensuring that the
+`high` price is mathematically always greater than or equal to the `low` price.  2.  **External Data
+Ingestion (J-Quants API Client):** The next step is to implement the incredibly robust
+`jquants_client.py` module. This highly specialized client must perfectly handle the complex two-
+step authentication process definitively required by the API: it must first successfully exchange
+the long-lived refresh token for a short-lived ID token, and then correctly utilize this ID token to
+authorize all subsequent data requests. The developer must utilize the standard `requests` library
+or the asynchronous `httpx` library for handling all HTTP communication. They must implement
+exceptionally robust retry logic, specifically using the highly recommended `tenacity` library. The
+fetching functions must be explicitly decorated to automatically and gracefully retry whenever
+encountering HTTP 429 (Too Many Requests) or potentially catastrophic HTTP 5xx errors, deliberately
+employing complex exponential backoff algorithms to avoid completely overwhelming the external API.
+The client must be capable of dynamically calculating the exact required date range (specifically
+targeting the most recent 12 weeks) utilizing Python's robust `datetime` module, and it must
+meticulously format the API requests accordingly. Crucially, before the data is allowed to proceed,
+the raw JSON response payload must be thoroughly parsed and strictly validated against the precisely
+defined `RawQuote` Pydantic model.  3.  **Internal Data Transformation (Polars Engine):** The
+developer must meticulously implement the `transformers.py` module. This crucial module will
+strategically expose functions specifically designed to take a comprehensive list of fully validated
+`RawQuote` objects and immediately load them into a highly optimized Polars DataFrame
+(`pl.DataFrame`). The developer must utilize Polars' highly efficient and parallelized expression
+API (specifically employing methods like `pl.col`, `pl.when().then()`, etc.) to calculate all the
+strictly required features. They must accurately calculate the `daily_return` utilizing the
+mathematically precise `pct_change()` equivalent. They must accurately calculate the
+`intraday_return` and the `overnight_return` utilizing highly optimized column arithmetic
+operations. They must accurately extract the precise `day_of_week` directly from the date column
+(ensuring absolutely that it maps correctly to integers 1-5 representing Monday-Friday).
+Furthermore, they must accurately create the specific boolean flags identifying the `is_month_start`
+and the `is_month_end`. The absolute final output of this highly complex function must unequivocally
+be a perfectly enriched Polars DataFrame.  4.  **Permanent Data Storage (Parquet & DuckDB
+Integration):** Finally, the developer must carefully implement the `repository.py` module. This
+critical module will completely handle the process of writing the fully enriched Polars DataFrame
+directly to a highly compressed Parquet file (`df.write_parquet("data/processed_quotes.parquet")`).
+The developer must meticulously implement a robust DuckDB integration that possesses the capability
+to query this specific Parquet file directly and efficiently. The repository should expertly expose
+a well-structured class or a set of highly focused functions that allow retrieving incredibly
+specific slices of the data strictly using standard DuckDB SQL syntax (for example, seamlessly
+executing `SELECT * FROM 'data/processed_quotes.parquet' WHERE day_of_week = 1`). This architectural
+decision provides a perfectly clean, highly abstract interface specifically designed for the
+subsequent analytical cycle to access the beautifully prepared data without ever needing to worry
+about complex underlying file formats or I/O operations. The repository implementation must also
+perfectly handle all edge cases, specifically ensuring it gracefully creates the required directory
+structures if they happen to not exist yet.  ## Test Strategy  The comprehensive test strategy
+specifically designed for CYCLE01 is rigorously constructed to ensure the absolute reliability of
+the entire ETL data pipeline without ever relying on unpredictable external services during
+standard, automated continuous integration runs. This exceptional level of reliability is achieved
+exclusively through the extensive, sophisticated use of mocking and highly controlled testing
+environments.  ### Unit Testing Approach The meticulous unit testing approach focuses heavily on
+exhaustively verifying the internal logic of individual software components perfectly in isolation.
+We will heavily and rigorously test the `src/domain/models.py` file to absolutely ensure that the
+Pydantic validation mechanisms behave flawlessly. We will systematically provide meticulously
+constructed dictionaries containing completely valid data and assert, with total certainty, that
+they parse successfully. Subsequently, we will deliberately provide dictionaries containing highly
+invalid data (for example, providing a string instead of a required float, missing absolutely
+essential fields entirely, or providing a `low` price that is bizarrely greater than a `high` price)
+and we will assert that a catastrophic `ValidationError` is correctly and immediately raised. This
+rigorous process absolutely guarantees that our fundamental data contracts are completely solid and
+unbreakable.  Furthermore, the complex mathematical transformation logic contained within
+`src/processing/transformers.py` will be exhaustively tested by deliberately creating incredibly
+small, entirely deterministic, completely synthetic Polars DataFrames. We will carefully feed these
+synthetic DataFrames directly into our various transformation functions and mathematically assert
+that the resulting generated columns (specifically `daily_return`, `day_of_week`, etc.) match
+precisely calculated, expected numerical values down to the last decimal point. We will specifically
+and aggressively test all known edge cases, such as the exact complex transition between completely
+different months to rigorously verify the `is_month_start` and `is_month_end` boolean flags, and we
+will ensure the system handles potential catastrophic division-by-zero scenarios beautifully and
+gracefully. These critical tests will be entirely self-contained, completely deterministic, and will
+execute dependably in mere milliseconds.  ### Integration Testing Approach The highly sophisticated
+integration testing approach will rigorously verify the incredibly complex interaction between
+completely different architectural components, perfectly and particularly focusing incredibly
+intently on the highly precise, highly critical communication exactly between the
+`jquants_client.py` and the highly secure `repository.py`. **MANDATORY MOCKING REQUIREMENT:** For
+absolutely all of the extremely important J-Quants client tests, the highly skilled developer must
+explicitly utilize the powerful `unittest.mock` framework or the incredibly highly powerful `pytest-
+mock` plugin to absolutely perfectly intercept entirely absolutely all outgoing HTTP requests. We
+will incredibly painstakingly and accurately simulate entirely and completely successful API
+responses explicitly containing perfectly formatted, highly accurate mock stock data, definitively
+ensuring the client correctly and flawlessly parses the highly complex JSON payloads and completely
+instantiates the exact `RawQuote` domain models absolutely flawlessly. Crucially, completely
+mandatorily, and without any exception, we will absolutely also deliberately and forcefully mock
+incredibly catastrophic failure scenarios: specifically and accurately simulating terrifying HTTP
+429 rate limit responses and horrifying HTTP 500 internal server errors to absolutely, unequivocally
+verify that the incredibly complex `tenacity` retry logic engages perfectly, accurately implements
+the exact expected exponential backoff timing, and incredibly eventually fails incredibly gracefully
+if absolutely all explicitly available retries are completely exhausted.  For the highly rigorous,
+incredibly important storage repository tests, we will specifically and masterfully utilize the
+highly effective, entirely built-in `tmp_path` fixture natively and powerfully provided by the
+excellent Pytest framework. We will highly programmatically and flawlessly create a perfectly
+structured, beautifully completely synthetic Polars DataFrame, correctly and accurately use the
+repository logic to save it securely directly to a temporary, highly compressed Parquet file, and
+then completely flawlessly use the powerful DuckDB integration to query it right back perfectly. We
+will assert, with absolutely unparalleled mathematical precision, that the perfectly and accurately
+retrieved data perfectly matches the exact original source DataFrame absolutely exactly. This
+absolutely, completely ensures the entire storage and retrieval mechanism unequivocally works
+completely flawlessly without ever leaving lingering, annoying, messy files completely polluting the
+specific developer's incredibly fragile local machine or the highly shared, absolutely vital CI
+server. A completely separate, incredibly highly specific set of extremely important tests,
+explicitly and very clearly marked specifically with the powerful `@pytest.mark.live` decorator,
+will be rapidly created incredibly specifically to perfectly perform actual, entirely real E2E API
+calls, but these will be incredibly safely conditionally and securely skipped entirely if the
+required `JQUANTS_REFRESH_TOKEN` environment variable is somehow not explicitly present, perfectly
+ensuring the incredibly standard, highly automated test suite strictly remains incredibly robust,
+remarkably fast, and exceptionally resilient completely within highly restrictive, entirely secure,
+highly automated sandbox environments.
