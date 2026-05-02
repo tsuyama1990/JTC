@@ -1,28 +1,37 @@
 ============================= test session starts ==============================
-platform linux -- Python 3.14.3, pytest-9.0.2, pluggy-1.6.0
+platform linux -- Python 3.12.13, pytest-9.0.3, pluggy-1.6.0
 rootdir: /app
 configfile: pyproject.toml
 testpaths: tests
-plugins: mock-3.15.1, cov-7.1.0
-collected 11 items
+plugins: mock-3.15.1, cov-7.1.0, anyio-4.13.0
+collected 17 items
 
-tests/test_analysis.py .........                                         [ 81%]
-tests/test_config.py ..                                                  [100%]
+tests/e2e/test_ingestion_storage.py ....s                                [ 29%]
+tests/uat/test_cycle01_uat.py ....                                       [ 52%]
+tests/unit/test_config.py ..                                             [ 64%]
+tests/unit/test_quotes.py .....                                          [ 94%]
+tests/unit/test_transformers.py .                                        [100%]
 
+=============================== warnings summary ===============================
+tests/e2e/test_ingestion_storage.py:122
+  /app/tests/e2e/test_ingestion_storage.py:122: PytestUnknownMarkWarning: Unknown pytest.mark.live - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+    @pytest.mark.live
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
 ================================ tests coverage ================================
-_______________ coverage: platform linux, python 3.14.3-final-0 ________________
+_______________ coverage: platform linux, python 3.12.13-final-0 _______________
 
-Name                       Stmts   Miss  Cover   Missing
---------------------------------------------------------
-src/__init__.py                0      0   100%
-src/analysis/__init__.py       3      0   100%
-src/analysis/backtest.py      23      0   100%
-src/analysis/stats.py         21      0   100%
-src/config.py                 10      0   100%
-src/domain/__init__.py         2      0   100%
-src/domain/analysis.py         5      0   100%
-src/domain/features.py         0      0   100%
-src/domain/jquants.py          0      0   100%
---------------------------------------------------------
-TOTAL                         64      0   100%
-============================= 11 passed in 14.33s ==============================
+Name                              Stmts   Miss  Cover   Missing
+---------------------------------------------------------------
+src/domain_models/__init__.py         3      0   100%
+src/domain_models/config.py           4      0   100%
+src/domain_models/quotes.py          23      0   100%
+src/ingestion/__init__.py             0      0   100%
+src/ingestion/jquants_client.py      57      8    86%   38-40, 62-64, 95-96
+src/processing/__init__.py            0      0   100%
+src/processing/transformers.py       13      1    92%   8
+src/storage/__init__.py               0      0   100%
+src/storage/repository.py            15      1    93%   17
+---------------------------------------------------------------
+TOTAL                               115     10    91%
+=================== 16 passed, 1 skipped, 1 warning in 8.71s ===================
