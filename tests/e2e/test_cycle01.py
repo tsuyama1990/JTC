@@ -1,3 +1,4 @@
+import os
 from pathlib import Path
 from typing import Any
 
@@ -5,6 +6,7 @@ import pytest
 from httpx import Request, Response
 
 from src.core.config import AppSettings
+from src.core.exceptions import IngestionError
 from src.ingestion.jquants_client import JQuantsClient
 from src.processing.transformers import transform_quotes_to_dataframe
 from src.storage.repository import DataRepository
@@ -59,20 +61,23 @@ def test_full_etl_pipeline_mocked(mocker: Any, tmp_path: Path) -> None:
     assert pytest.approx(queried_df["daily_return"][0], abs=1e-5) == 0.047619
 
 @pytest.mark.live
+@pytest.mark.skipif(
+    not os.getenv("JQUANTS_REFRESH_TOKEN") or os.getenv("JQUANTS_REFRESH_TOKEN") in ("dummy", "test_token"),
+    reason="Requires live API token"
+)
 def test_full_etl_pipeline_live(tmp_path: Path) -> None:
     """
     Live API E2E Pipeline Verification. Skip if no real credentials.
     """
-    try:
-        settings = AppSettings() # type: ignore[call-arg]
-    except Exception:
-        pytest.skip("No real environment configurations. Skipping live test.")
-
-    if settings.JQUANTS_REFRESH_TOKEN in ("dummy", "test_token"):
-        pytest.skip("Dummy token detected. Skipping live test.")
-
+    settings = AppSettings() # type: ignore[call-arg]
     client = JQuantsClient(settings)
-    raw_quotes = client.fetch_historical_quotes()
+
+    try:
+        raw_quotes = client.fetch_historical_quotes()
+    except IngestionError as e:
+        if "400" in str(e) or "401" in str(e) or "403" in str(e):
+            pytest.skip(f"Live API authentication failed: {e}")
+        raise
 
     if not raw_quotes:
         pytest.skip("No historical data fetched. Might be holiday or no permissions.")

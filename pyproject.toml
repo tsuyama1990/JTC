@@ -38,14 +38,16 @@ select = [
 ]
 
 ignore = [
-    "ANN101", "ANN002", "ANN003", "ANN001", "ANN401", "ARG001", "ARG005",
+    "ANN002", "ANN003", "ANN001", "ANN401", "ARG001", "ARG005",
     "PLR2004", "E501", "TRY003", "D", "ANN201", "N806", "PLC0415", "BLE001",
     "PT019", "RUF003", "ARG002", "RUF043", "RUF059", "PLR0913", "ANN202"
 ]
 
 [tool.ruff.lint.per-file-ignores]
-"tests/**/*.py" = ["S101", "S106", "S105"]  # Allow assert in tests, dummy passwords/tokens
-"tutorials/*.py" = ["N807", "N803", "S110", "F811"] # Ignore strict linting for marimo generation internals
+"tests/**/*.py" = ["S101", "S106", "S105"]
+"tutorials/*.py" = ["N807", "N803", "S110", "F811", "T201", "I001"]
+"run_all_tests.py" = ["T201", "S607", "PLW1510", "S603"]
+"main.py" = ["T201"]
 
 [tool.ruff.lint.mccabe]
 max-complexity = 10  # Exceeding this prompts function splitting (prevent AI long functions)

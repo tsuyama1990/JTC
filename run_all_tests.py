@@ -1,6 +1,7 @@
 import subprocess
 from pathlib import Path
 
+
 def main():
     p = Path('dev_documents')
     p.mkdir(parents=True, exist_ok=True)
