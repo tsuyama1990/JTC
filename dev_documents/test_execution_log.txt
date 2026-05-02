@@ -1,28 +1,37 @@
 ============================= test session starts ==============================
-platform linux -- Python 3.14.3, pytest-9.0.2, pluggy-1.6.0
+platform linux -- Python 3.12.13, pytest-9.0.3, pluggy-1.6.0
 rootdir: /app
 configfile: pyproject.toml
 testpaths: tests
-plugins: mock-3.15.1, cov-7.1.0
-collected 11 items
+plugins: mock-3.15.1, cov-7.1.0, anyio-4.13.0
+collected 19 items
 
-tests/test_analysis.py .........                                         [ 81%]
-tests/test_config.py ..                                                  [100%]
+tests/e2e/test_cycle01.py .s                                             [ 10%]
+tests/e2e/test_live_ingestion.py s                                       [ 15%]
+tests/uat/test_cycle01_uat.py .                                          [ 21%]
+tests/unit/test_config.py ..                                             [ 31%]
+tests/unit/test_domain_models.py ....                                    [ 52%]
+tests/unit/test_jquants_client.py ....                                   [ 73%]
+tests/unit/test_repository.py ...                                        [ 89%]
+tests/unit/test_transformers.py ..                                       [100%]
 
 ================================ tests coverage ================================
-_______________ coverage: platform linux, python 3.14.3-final-0 ________________
+_______________ coverage: platform linux, python 3.12.13-final-0 _______________
 
-Name                       Stmts   Miss  Cover   Missing
---------------------------------------------------------
-src/__init__.py                0      0   100%
-src/analysis/__init__.py       3      0   100%
-src/analysis/backtest.py      23      0   100%
-src/analysis/stats.py         21      0   100%
-src/config.py                 10      0   100%
-src/domain/__init__.py         2      0   100%
-src/domain/analysis.py         5      0   100%
-src/domain/features.py         0      0   100%
-src/domain/jquants.py          0      0   100%
---------------------------------------------------------
-TOTAL                         64      0   100%
-============================= 11 passed in 14.33s ==============================
+Name                                   Stmts   Miss  Cover   Missing
+--------------------------------------------------------------------
+src/core/__init__.py                       0      0   100%
+src/core/config.py                         4      0   100%
+src/core/exceptions.py                     4      0   100%
+src/domain_models/__init__.py              3      0   100%
+src/domain_models/processed_quote.py      17      0   100%
+src/domain_models/raw_quote.py            28      8    71%   19-20, 25-26, 28-29, 31-32
+src/ingestion/__init__.py                  0      0   100%
+src/ingestion/jquants_client.py           63     13    79%   29-30, 34-36, 70-75, 93-94
+src/processing/__init__.py                 0      0   100%
+src/processing/transformers.py             9      0   100%
+src/storage/__init__.py                    0      0   100%
+src/storage/repository.py                 26      6    77%   20-22, 35-37
+--------------------------------------------------------------------
+TOTAL                                    154     27    82%
+======================== 17 passed, 2 skipped in 5.74s =========================
