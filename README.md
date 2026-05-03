@@ -56,12 +56,37 @@ Edit the `.env` file and append your J-Quants API refresh token: `JQUANTS_REFRES
 
 ## Usage
 
-### Quick Start with Marimo
+### Analytical Workflows
 
-The entire UAT and tutorial suite is packaged in a single, reactive Marimo notebook. It supports both Mock Mode (no API key required) and Real Mode.
+The analytical engine provides rigorous statistical validation and backtesting capabilities.
 
-```bash
-uv run marimo edit tutorials/UAT_AND_TUTORIAL.py
+**Statistical Evaluation:**
+Calculate whether returns on a specific day are statistically significant compared to other days.
+
+```python
+import polars as pl
+from src.analysis.statistics import evaluate_calendar_anomaly
+
+df = pl.read_parquet("data/historical_data.parquet")
+# Test Monday returns vs other days
+stat_result = evaluate_calendar_anomaly(df, target_day=1)
+print(f"Is Significant: {stat_result.is_significant}, P-Value: {stat_result.p_value}")
+```
+
+**Backtest Simulation:**
+Run an algorithmic trading simulation based on your calendar strategy, factoring in fees.
+
+```python
+import polars as pl
+from src.analysis.backtest import run_simulation
+
+df = pl.read_parquet("data/historical_data.parquet")
+# Define your entry/exit boolean series here
+entries = df["day_of_week"] == 5  # Enter Friday
+exits = df["day_of_week"] == 1    # Exit Monday
+
+metrics = run_simulation(df, entries=entries, exits=exits, initial_cash=1000000.0, fees=0.001)
+print(f"Total Return: {metrics.total_return}%, Sharpe Ratio: {metrics.sharpe_ratio}")
 ```
 
 ### Standard Execution
